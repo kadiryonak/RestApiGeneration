@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+.venvs/
+
+# Secrets
+.env
+!.env.example
+
+# Tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Benchmark checkouts / services (reproduced by a setup command, never committed)
+benchmark/projects/
+benchmark/services/
+
+# Experiment artefacts (raw runs are large; summaries in results/summary/ are committed)
+results/runs/
+results/cache/
+results/*.log
+
+# Literature PDFs live in the Obsidian vault, not in the repository
+docs/literature/**/*.pdf
+
+# Editors / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/
+
+# Third-party tools cloned for study (own git history, not part of restgen)
+/schemathesis/
+/hypothesis/
