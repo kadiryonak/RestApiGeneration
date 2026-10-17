@@ -13,7 +13,7 @@
   (finding papers, filling the extraction matrix, comparing approaches),
   repository hygiene and documents only.
 - Research memory lives in the Obsidian vault at
-  `~/Masaüstü/Obsidian Vault/SoftwareTest/RESTapiLiteratür/` (paper PDFs and
+  `~/Masaüstü/Obsidian Vault/RestApi/RestApi/RESTapiLiteratür/` (paper PDFs and
   Turkish reading notes). The repository keeps the English review protocol,
   `docs/literature/references.bib` and `docs/literature/extraction-matrix.csv`;
   keep the two in sync when a paper is added or read.

@@ -1,0 +1,34 @@
+# restgen base configuration (benchmark + evaluation infrastructure).
+# Values are placeholders until docs/EXPERIMENT_PROTOCOL.md is frozen.
+
+[paths]
+benchmark_manifest = "configs/benchmark.toml"
+benchmark_dir = "benchmark/projects"
+results_dir = "results"
+
+[budget]
+# Schemathesis benchmarking guide: bound runs by the clock (--max-time).
+max_time_seconds = 60
+max_examples = 100
+request_timeout_seconds = 10.0
+
+[repetitions]
+# Schemathesis benchmarking guide: >= 5 seeds, report the median.
+seeds = [42, 43, 44, 45, 46]
+
+[evaluation]
+success_status_min = 200
+success_status_max = 299
+server_error_min = 500
+rerun_count = 3
+
+[proxy]
+max_body_bytes = 4096
+redact_headers = ["authorization", "cookie", "set-cookie", "x-api-key"]
+
+[tools.schemathesis]
+executable = "schemathesis/.venv/bin/schemathesis"
+extra_args = ["--continue-on-failure", "--no-shrink", "--suppress-health-check", "all"]
+
+[tools.hypothesis]
+python = ".venvs/hypothesis/bin/python"
