@@ -1,0 +1,77 @@
+# Benchmark manifest: every suite is pinned to an exact commit (verified 2026-10-19,
+# see docs/literature/verified-sources.md). `restgen benchmark fetch` checks them out into
+# benchmark/projects/suites/<suite>; `restgen benchmark verify` proves they are unchanged.
+#
+# Roles (analysis §6.2): development = method/prompt design, validation = parameter
+# choice, evaluation = run only after the method is frozen. Everything stays
+# "unassigned" until docs/EXPERIMENT_PROTOCOL.md is frozen, except the toy API.
+# Category "artificial" results are always reported apart from "real" ones.
+
+[suite.restgym]
+kind = "services"
+repository = "https://github.com/restgym/restgym.git"
+commit = "f413a75923f849f7fd0edb74c7339390843385bf"
+license = "Apache-2.0"
+reference = "corradini2025restgym"
+notes = "11 JVM APIs, Docker only; JaCoCo agent + mitmproxy. Comparable main group."
+
+[suite.wfd]
+kind = "services"
+repository = "https://github.com/WebFuzzing/Dataset.git"
+commit = "915859080da033fc36feae54bab3ad4a7b04e872"
+license = "Apache-2.0 (SUTs keep their own licences)"
+reference = "sahin2025wfd"
+notes = "Formerly EMB. REST/GraphQL/RPC; count only REST SUTs; versions of one project are not independent projects."
+
+[suite.wafp]
+kind = "services"
+repository = "https://github.com/schemathesis/web-api-fuzzing-project.git"
+commit = "4f9d9614dafb06ea7d469a8fc9de230c1f152bdd"
+license = "MIT"
+reference = "hatfielddodds2022semantics"
+notes = "Python/JS/Go/Rust targets of the ICSE 2022 study; docker-compose per target; last push 2023, installability unchecked."
+
+[suite.restestbench]
+kind = "requirements"
+repository = "https://github.com/casablancahotelsoftware/RESTestBench.git"
+commit = "4decc1e36ea3dd41b64ce3e3ac6a85bc72df36ae"
+license = "AGPL-3.0"
+reference = "kogler2026restestbench"
+notes = "FastAPI template, NestJS realworld, .NET TodoApp; NL requirements + validated mutants."
+
+[suite.prab]
+kind = "specs"
+repository = "https://github.com/alixdecr/PRAB.git"
+commit = "9312e96ab84c309b623fa3c7f027b85a9e9d4ffd"
+license = "none (no LICENSE file)"
+reference = "decrop2025prab"
+notes = "OpenAPI documents of public APIs only: schema diversity, never server coverage."
+
+[suite.schemathesis-examples]
+kind = "services"
+repository = "https://github.com/schemathesis/schemathesis.git"
+commit = "4eeb7ebf9234e6b087ebf0a0e643e4eb39cffddc"
+license = "MIT"
+reference = "hatfielddodds2026schemathesis"
+notes = "Teaching APIs shipped with Schemathesis; development only."
+
+[service.booking]
+suite = "schemathesis-examples"
+language = "python"
+framework = "fastapi"
+category = "artificial"
+role = "development"
+openapi = "/openapi.json"
+health = "/openapi.json"
+headers = { Authorization = "Bearer secret-token" }
+notes = "Has a deliberate KeyError on unknown room_type (500)."
+
+[service.booking.launch]
+kind = "command"
+workdir = "examples/booking"
+argv = ["{python}", "-m", "uvicorn", "app:app", "--host", "127.0.0.1", "--port", "{port}"]
+requirements = ["fastapi==0.143.0", "uvicorn==0.54.0"]  # versions the example ran with (2026-10-09)
+
+[service.booking.coverage]
+kind = "coveragepy"
+include = ["."]
