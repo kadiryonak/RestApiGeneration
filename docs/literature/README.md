@@ -61,7 +61,7 @@ Q5b threats to validity discussed · Q6 artefact (tool, data) available.
 
 ## Extraction matrix columns
 
-`key, title, year, venue, source(search id / snowball), lq, screening
+`reading_order, key, pdf_status (have/download/paywalled), title, year, venue, source(search id / snowball), lq, screening
 (include/exclude/pending), exclusion_reason, approach_category, uses_llm,
 llm_model, uses_metaheuristic, metaheuristic, solution_encoding, fitness,
 benchmark, metrics, baselines, main_result, limitations, artefact_url,
