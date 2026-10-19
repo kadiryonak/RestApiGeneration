@@ -11,11 +11,27 @@ based search (employed / onlooker / scout bees, `limit`, fitness-proportional
 selection); the LLM provides domain knowledge as a variation or construction
 operator inside that search.
 
-**Current phase: literature review.** No method code is written yet. The exact
-problem — generating *tests* for an existing REST API vs. generating the *API
-implementation* itself — is decided at the end of the review and recorded in
-[`docs/RESEARCH_PLAN.md`](docs/RESEARCH_PLAN.md). Until then do not add method
-code, dependencies or a package layout that presumes one of the two directions.
+**Current phase: literature review**, with the benchmark and evaluation
+infrastructure already built at the owner's request (2026-10-17). It assumes
+direction A of decision D1 (generating a persistent Python *test suite* for an
+existing REST API); see [`docs/RESEARCH_PLAN.md`](docs/RESEARCH_PLAN.md). The
+ABC + LLM *method* itself (`src/restgen/abc/`, `src/restgen/llm/`) is not written
+until the phase changes.
+
+## Measurement architecture
+
+Every tool (the method and every baseline) is measured the same way:
+
+1. the service runs fresh, in its own venv, under a coverage tool;
+2. the tool talks to it **only through the recording proxy**
+   (`traffic/proxy.py`), which writes every exchange to `traffic.jsonl`;
+3. a tool that produces a test suite has it re-run alone on clean services
+   (output coverage, retention, stability);
+4. `restgen measure` computes `metrics.json` from the recorded artefacts only.
+
+Metric definitions live in the module docstrings of `src/restgen/evaluation/`
+(operation coverage, faults, suite quality, retention, mutation, repairs, cost,
+statistics). Undefined values are `None`, never a fake 0 or 1.
 
 ## Non-negotiable rules
 
@@ -50,7 +66,13 @@ docs/
   EXPERIMENT_PROTOCOL.md  frozen before the first real run; change log afterwards
   literature/           review protocol, BibTeX, extraction matrix, note template
 configs/                experiment configuration (TOML); experiments/ holds variants
-src/restgen/            the package (empty until the method is fixed)
+src/restgen/
+  config.py, errors.py, cli.py, openapi.py, runner.py
+  traffic/              recording reverse proxy + interaction model
+  benchmark/            manifest registry, pinned suite fetcher, service runtime
+  coverage/             coverage.py JSON and JaCoCo XML readers (covered sets kept)
+  evaluation/           metrics, measure (metrics.json), statistics, comparison report
+  baselines/            comparison tools: Schemathesis CLI, Hypothesis pytest suite
 tests/unit              fast, no network, no subprocess
 tests/integration       real services / subprocesses (marker: integration)
 tests/support           shared fakes and fixtures (e.g. a scripted fake LLM client)
@@ -60,14 +82,12 @@ scripts/                one-off orchestration (experiment chains), not library c
 schemathesis/           upstream Schemathesis clone for study (git-ignored, own .venv;
                         never install restgen deps there or Schemathesis into restgen's .venv)
 hypothesis/             upstream Hypothesis clone for study (git-ignored, partial clone)
+.venvs/hypothesis/      Hypothesis baseline environment (`make tools`, git-ignored)
 ```
 
-The sub-package layout of `src/restgen/` is designed after the literature
-review. Expected building blocks, whichever direction is chosen: `config`,
-`errors`, `cli`, an `abc/` search core (food source, colony, bee phases,
-selection, termination), an `llm/` layer (clients, prompts, caching, cost
-accounting), a `benchmark/` layer, an `evaluation/` layer (metrics, statistics,
-reports) and `baselines/`.
+Still to come with the method: an `abc/` search core (food source, colony, bee
+phases, selection, termination) and an `llm/` layer (clients, prompts, caching,
+cost accounting). The method plugs in as one more `ComparisonTool`.
 
 ## Commands
 
@@ -77,4 +97,16 @@ source .venv/bin/activate
 make check            # ruff + ruff format --check + mypy --strict + unit tests
 make test-integration # tests marked integration
 make format           # auto-fix lint and formatting
+make tools            # Schemathesis + Hypothesis tool venvs from the pinned clones
+
+restgen benchmark list|fetch|verify      # suites at pinned commits
+restgen benchmark setup -s booking       # service venv
+restgen run --run-id NAME -s booking -t schemathesis -t hypothesis [--seed N] [--force]
+restgen measure results/runs/NAME/...    # recompute metrics.json (e.g. after triage)
+restgen report --name NAME --group a='NAME/*/schemathesis/*' --group b='NAME/*/hypothesis/*'
+restgen --set budget.max_time_seconds=600 run ...   # config overrides
 ```
+
+After a run, label every failure in its `triage.toml` (`app_bug` with a
+`root_cause` id, `tool_assumption` or `environment`); verified bug counts stay
+`null` until triage is complete.

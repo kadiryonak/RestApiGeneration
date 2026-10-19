@@ -13,6 +13,10 @@ from restgen.benchmark.registry import BenchmarkRegistry
 from restgen.benchmark.service import ServiceEnvironment
 from restgen.config import DEFAULT_CONFIG, Settings, load_settings
 from restgen.errors import RestgenError
+from restgen.evaluation.measure import measure
+from restgen.evaluation.report import build_report, collect
+from restgen.jsonio import write_json
+from restgen.runner import TOOLS, Runner, RunRequest, load_run
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -34,6 +38,26 @@ def build_parser() -> argparse.ArgumentParser:
     actions.add_parser("verify", help="check that fetched suites are pinned and unchanged")
     setup = actions.add_parser("setup", help="create service virtualenvs")
     setup.add_argument("-s", "--service", action="append", default=[])
+
+    run = commands.add_parser("run", help="run tools on services (then measure)")
+    run.add_argument("--run-id", required=True)
+    run.add_argument("-s", "--service", action="append", required=True)
+    run.add_argument("-t", "--tool", action="append", choices=TOOLS, required=True)
+    run.add_argument("--seed", type=int, action="append", help="default: repetitions.seeds")
+    run.add_argument("--force", action="store_true", help="replace existing run directories")
+
+    measure_cmd = commands.add_parser("measure", help="recompute metrics.json of runs")
+    measure_cmd.add_argument("run_dirs", nargs="+", type=Path)
+
+    report = commands.add_parser("report", help="compare groups of runs")
+    report.add_argument("--name", required=True)
+    report.add_argument(
+        "--group",
+        action="append",
+        required=True,
+        metavar="LABEL=GLOB[,GLOB]",
+        help="run directories relative to results/runs, e.g. st=smoke/*/schemathesis/*",
+    )
     return parser
 
 
@@ -44,6 +68,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "config":
             print(json.dumps(settings.to_dict(), indent=2, sort_keys=True))
             return 0
+        if args.command == "run":
+            return _run(settings, args)
+        if args.command == "measure":
+            return _measure(settings, args.run_dirs)
+        if args.command == "report":
+            return _report(settings, args)
         return _benchmark(settings, args)
     except RestgenError as exc:
         print(f"error: {exc}", file=sys.stderr)
@@ -95,4 +125,56 @@ def _benchmark(settings: Settings, args: argparse.Namespace) -> int:
         environment = ServiceEnvironment(service, settings.paths.benchmark_dir)
         environment.setup()
         print(f"{name}: {environment.python}")
+    return 0
+
+
+def _source_root(settings: Settings, service_name: str) -> Path | None:
+    registry = BenchmarkRegistry.load(settings.paths.benchmark_manifest)
+    if service_name not in registry.services:
+        return None
+    service = registry.service(service_name)
+    suite_path = SuiteFetcher(settings.paths.benchmark_dir).path(registry.suite(service.suite))
+    return (suite_path / service.launch.workdir).resolve()
+
+
+def _run(settings: Settings, args: argparse.Namespace) -> int:
+    runner = Runner(settings, BenchmarkRegistry.load(settings.paths.benchmark_manifest))
+    seeds = args.seed or list(settings.repetitions.seeds)
+    for service in args.service:
+        for tool in args.tool:
+            for seed in seeds:
+                directory = runner.run(RunRequest(args.run_id, service, tool, seed), args.force)
+                metrics = measure(directory, _source_root(settings, service))
+                ops = metrics["operations"]
+                coverage = metrics["exploration_coverage"] or {}
+                print(
+                    f"{service}/{tool}/s{seed}: ops success {ops['operation_success_coverage']}, "
+                    f"line {coverage.get('line_coverage')}, "
+                    f"failures {metrics['faults']['unique_failures']} -> {directory}"
+                )
+    return 0
+
+
+def _measure(settings: Settings, run_dirs: list[Path]) -> int:
+    for directory in run_dirs:
+        service = str(load_run(directory)["service"])
+        measure(directory, _source_root(settings, service))
+        print(f"measured {directory}")
+    return 0
+
+
+def _report(settings: Settings, args: argparse.Namespace) -> int:
+    groups: dict[str, list[str]] = {}
+    for spec in args.group:
+        label, sep, patterns = spec.partition("=")
+        if not sep or not label or not patterns:
+            raise RestgenError(f"--group must look like LABEL=GLOB[,GLOB]: {spec!r}")
+        groups[label] = patterns.split(",")
+    data, categories = collect(settings.paths.results_dir, groups)
+    markdown, payload = build_report(args.name, data, categories)
+    summary = settings.paths.results_dir / "summary"
+    summary.mkdir(parents=True, exist_ok=True)
+    (summary / f"{args.name}.md").write_text(markdown + "\n", encoding="utf-8")
+    write_json(summary / f"{args.name}.json", payload)
+    print(summary / f"{args.name}.md")
     return 0

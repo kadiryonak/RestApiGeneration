@@ -2,6 +2,9 @@
 
 **Current phase: 1 — literature review** (started 2026-10-09)
 
+Benchmark and evaluation infrastructure was built ahead of phase 2 at the owner's
+request (2026-10-17 / 2026-10-19), assuming D1 = A (see below).
+
 ## Phases
 
 | # | Phase | Exit criterion |
@@ -28,14 +31,20 @@
 
 Record the decision here with the date and the reasons (what the review showed).
 
+**Provisional (2026-10-19): A — the owner's benchmark/metric analysis targets a
+persistent Python test suite for existing REST APIs, and the infrastructure is built for
+that. To be confirmed by the owner at the end of phase 1.**
+
 ### D2 — LLM provider(s)
 API (DeepSeek/OpenAI/Claude) vs. local (Ollama). Driven by budget and by the
 model-independence question; decide in phase 2.
 
 ### D3 — benchmark
-Depends on D1. Candidates to evaluate in phase 1: EMB (EvoMaster Benchmark),
-the service sets used by ARAT-RL / AutoRestTest / LlamaRestTest, RESTgym.
-Must be pinned and reproducible (`benchmark/README.md`).
+Candidates are pinned in `configs/benchmark.toml` (RESTgym, WFD/EMB, WAFP, RESTestBench,
+PRAB). Proposed composition (owner's analysis §6.3): 8–11 RESTgym/WFD services as the
+comparable main group, 4–6 WAFP services for technology diversity, the three RESTestBench
+services for requirement-based fault detection, a few artificial APIs for mechanism
+studies. Not frozen; online APIs are not used as the main reproducible benchmark.
 
 ## Candidate research questions (to be finalised in phase 2)
 

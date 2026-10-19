@@ -1,0 +1,227 @@
+{
+  "aggregates": {
+    "artificial": {
+      "branch_coverage": {
+        "hypothesis": 0.5,
+        "schemathesis": 0.6666666666666666
+      },
+      "http_calls": {
+        "hypothesis": 66.0,
+        "schemathesis": 794.0
+      },
+      "line_coverage": {
+        "hypothesis": 0.813953488372093,
+        "schemathesis": 0.8372093023255814
+      },
+      "line_retention": {
+        "hypothesis": 1.0
+      },
+      "operation_attempt_coverage": {
+        "hypothesis": 1.0,
+        "schemathesis": 1.0
+      },
+      "operation_success_coverage": {
+        "hypothesis": 0.3333333333333333,
+        "schemathesis": 0.3333333333333333
+      },
+      "output_line_coverage": {
+        "hypothesis": 0.813953488372093
+      },
+      "pass_rate": {
+        "hypothesis": 0.6666666666666666
+      },
+      "unique_crash_locations": {
+        "hypothesis": 1.0,
+        "schemathesis": 1.0
+      },
+      "unique_failures": {
+        "hypothesis": 1.0,
+        "schemathesis": 1.0
+      },
+      "wall_seconds": {
+        "hypothesis": 0.719,
+        "schemathesis": 20.531
+      }
+    }
+  },
+  "comparisons": {
+    "branch_coverage": {
+      "hypothesis|booking": {
+        "a12": 0.0,
+        "magnitude": "large",
+        "p_holm": 0.04685417760387376,
+        "p_value": 0.04685417760387376
+      }
+    },
+    "http_calls": {
+      "hypothesis|booking": {
+        "a12": 0.0,
+        "magnitude": "large",
+        "p_holm": 0.07652250047505922,
+        "p_value": 0.07652250047505922
+      }
+    },
+    "line_coverage": {
+      "hypothesis|booking": {
+        "a12": 0.0,
+        "magnitude": "large",
+        "p_holm": 0.04685417760387376,
+        "p_value": 0.04685417760387376
+      }
+    },
+    "line_retention": {},
+    "operation_attempt_coverage": {
+      "hypothesis|booking": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      }
+    },
+    "operation_success_coverage": {
+      "hypothesis|booking": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      }
+    },
+    "output_line_coverage": {},
+    "pass_rate": {},
+    "unique_crash_locations": {
+      "hypothesis|booking": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      }
+    },
+    "unique_failures": {
+      "hypothesis|booking": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      }
+    },
+    "wall_seconds": {
+      "hypothesis|booking": {
+        "a12": 0.0,
+        "magnitude": "large",
+        "p_holm": 0.1,
+        "p_value": 0.1
+      }
+    }
+  },
+  "data": {
+    "hypothesis": {
+      "booking": {
+        "branch_coverage": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "http_calls": [
+          206.0,
+          66.0,
+          66.0
+        ],
+        "line_coverage": [
+          0.813953488372093,
+          0.813953488372093,
+          0.813953488372093
+        ],
+        "line_retention": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "operation_attempt_coverage": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "operation_success_coverage": [
+          0.3333333333333333,
+          0.3333333333333333,
+          0.3333333333333333
+        ],
+        "output_line_coverage": [
+          0.813953488372093,
+          0.813953488372093,
+          0.813953488372093
+        ],
+        "pass_rate": [
+          0.6666666666666666,
+          0.6666666666666666,
+          0.6666666666666666
+        ],
+        "unique_crash_locations": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "unique_failures": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "wall_seconds": [
+          0.816,
+          0.719,
+          0.716
+        ]
+      }
+    },
+    "schemathesis": {
+      "booking": {
+        "branch_coverage": [
+          0.6666666666666666,
+          0.6666666666666666,
+          0.6666666666666666
+        ],
+        "http_calls": [
+          1183.0,
+          791.0,
+          794.0
+        ],
+        "line_coverage": [
+          0.8372093023255814,
+          0.8372093023255814,
+          0.8372093023255814
+        ],
+        "operation_attempt_coverage": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "operation_success_coverage": [
+          0.3333333333333333,
+          0.3333333333333333,
+          0.3333333333333333
+        ],
+        "unique_crash_locations": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "unique_failures": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "wall_seconds": [
+          20.531,
+          20.526,
+          20.572
+        ]
+      }
+    }
+  },
+  "groups": [
+    "schemathesis",
+    "hypothesis"
+  ],
+  "name": "smoke-booking",
+  "reference": "schemathesis"
+}

@@ -44,6 +44,9 @@ docs/literature/**/*.pdf
 # graft's local graph cache — regenerable, not committed (run `graft build`).
 /graft/
 
+# Schemathesis crash cache (must never be shared between runs)
+.schemathesis/
+
 # Third-party tools cloned for study (own git history, not part of restgen)
 /schemathesis/
 /hypothesis/

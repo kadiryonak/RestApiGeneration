@@ -9,9 +9,11 @@
 - Commit messages: imperative, concise, no `Co-Authored-By` or any AI/tool
   attribution. The owner is the only author.
 - **Phase gate:** while `docs/RESEARCH_PLAN.md` says the phase is
-  "literature review", do not write method code. Help with the review itself
-  (finding papers, filling the extraction matrix, comparing approaches),
-  repository hygiene and documents only.
+  "literature review", do not write ABC/LLM method code. The review itself,
+  documents, repository hygiene and the benchmark/evaluation infrastructure
+  (owner's request, 2026-10-17) are in scope.
+- Paper reading order and PDFs: `00 - Okuma Sırası.md` in the vault folder below;
+  files are named `NN - Title.pdf` inside numbered category folders.
 - Research memory lives in the Obsidian vault at
   `~/Masaüstü/Obsidian Vault/RestApi/RestApi/RESTapiLiteratür/` (paper PDFs and
   Turkish reading notes). The repository keeps the English review protocol,
