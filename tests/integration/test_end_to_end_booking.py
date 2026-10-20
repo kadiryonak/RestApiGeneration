@@ -70,6 +70,13 @@ def test_schemathesis_run_is_measured(runner: Runner) -> None:
     assert not (ROOT / ".schemathesis").exists()
     # a complete run is never redone silently
     assert runner.run(RunRequest("it", "booking", "schemathesis", 42)) == directory
+    # --force starts from an empty directory: nothing of the first attempt survives
+    first_calls = metrics["operations"]["requests"]
+    (directory / "tool" / "marker").write_text("old")
+    runner.run(RunRequest("it", "booking", "schemathesis", 42), force=True)
+    assert not (directory / "tool" / "marker").exists()
+    again = measure(directory, _source_root(runner))["operations"]["requests"]
+    assert again < 2 * first_calls  # not accumulated on top of the first attempt
 
 
 def test_hypothesis_suite_is_rerun_on_clean_services(runner: Runner) -> None:

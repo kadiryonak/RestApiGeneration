@@ -84,3 +84,11 @@ def test_record_round_trip_and_malformed_record() -> None:
 def test_missing_traffic_file(tmp_path: Path) -> None:
     with pytest.raises(MeasurementError):
         list(read_traffic(tmp_path / "nope.jsonl"))
+
+
+def test_a_new_proxy_session_starts_a_fresh_log(tmp_path: Path) -> None:
+    log = tmp_path / "traffic.jsonl"
+    log.write_text('{"stale": true}\n')
+    with echo_service() as upstream, RecordingProxy(upstream, log, SETTINGS, 5.0) as proxy:
+        httpx.get(f"{proxy.url}/x")
+    assert [r.target for r in read_traffic(log)] == ["/x"]

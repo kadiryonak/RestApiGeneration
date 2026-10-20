@@ -74,7 +74,7 @@ class RecordingProxy:
 
     def start(self) -> RecordingProxy:
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
-        self.log_path.touch()
+        self.log_path.write_text("", encoding="utf-8")  # one proxy session = one log
         self._thread.start()
         return self
 

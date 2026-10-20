@@ -2,75 +2,110 @@
   "aggregates": {
     "artificial": {
       "branch_coverage": {
+        "evomaster": 0.6666666666666666,
         "hypothesis": 0.5,
         "schemathesis": 0.6666666666666666
       },
       "http_calls": {
-        "hypothesis": 66.0,
-        "schemathesis": 794.0
+        "evomaster": 458.0,
+        "hypothesis": 33.0,
+        "schemathesis": 391.0
       },
       "line_coverage": {
+        "evomaster": 0.8372093023255814,
         "hypothesis": 0.813953488372093,
         "schemathesis": 0.8372093023255814
       },
       "line_retention": {
+        "evomaster": 1.0,
         "hypothesis": 1.0
       },
       "operation_attempt_coverage": {
+        "evomaster": 1.0,
         "hypothesis": 1.0,
         "schemathesis": 1.0
       },
       "operation_success_coverage": {
+        "evomaster": 0.3333333333333333,
         "hypothesis": 0.3333333333333333,
         "schemathesis": 0.3333333333333333
       },
       "output_line_coverage": {
+        "evomaster": 0.8372093023255814,
         "hypothesis": 0.813953488372093
       },
       "pass_rate": {
+        "evomaster": 1.0,
         "hypothesis": 0.6666666666666666
       },
       "unique_crash_locations": {
+        "evomaster": 1.0,
         "hypothesis": 1.0,
         "schemathesis": 1.0
       },
       "unique_failures": {
+        "evomaster": 1.0,
         "hypothesis": 1.0,
         "schemathesis": 1.0
       },
       "wall_seconds": {
-        "hypothesis": 0.719,
-        "schemathesis": 20.531
+        "evomaster": 22.56,
+        "hypothesis": 1.418,
+        "schemathesis": 20.541
       }
     }
   },
   "comparisons": {
     "branch_coverage": {
+      "evomaster|booking": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      },
       "hypothesis|booking": {
         "a12": 0.0,
         "magnitude": "large",
-        "p_holm": 0.04685417760387376,
+        "p_holm": 0.09370835520774752,
         "p_value": 0.04685417760387376
       }
     },
     "http_calls": {
+      "evomaster|booking": {
+        "a12": 1.0,
+        "magnitude": "large",
+        "p_holm": 0.12720513924150734,
+        "p_value": 0.1
+      },
       "hypothesis|booking": {
         "a12": 0.0,
         "magnitude": "large",
-        "p_holm": 0.07652250047505922,
-        "p_value": 0.07652250047505922
+        "p_holm": 0.12720513924150734,
+        "p_value": 0.06360256962075367
       }
     },
     "line_coverage": {
+      "evomaster|booking": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      },
       "hypothesis|booking": {
         "a12": 0.0,
         "magnitude": "large",
-        "p_holm": 0.04685417760387376,
+        "p_holm": 0.09370835520774752,
         "p_value": 0.04685417760387376
       }
     },
     "line_retention": {},
     "operation_attempt_coverage": {
+      "evomaster|booking": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      },
       "hypothesis|booking": {
         "a12": 0.5,
         "magnitude": "negligible",
@@ -79,6 +114,12 @@
       }
     },
     "operation_success_coverage": {
+      "evomaster|booking": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      },
       "hypothesis|booking": {
         "a12": 0.5,
         "magnitude": "negligible",
@@ -89,6 +130,12 @@
     "output_line_coverage": {},
     "pass_rate": {},
     "unique_crash_locations": {
+      "evomaster|booking": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      },
       "hypothesis|booking": {
         "a12": 0.5,
         "magnitude": "negligible",
@@ -97,6 +144,12 @@
       }
     },
     "unique_failures": {
+      "evomaster|booking": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      },
       "hypothesis|booking": {
         "a12": 0.5,
         "magnitude": "negligible",
@@ -105,15 +158,80 @@
       }
     },
     "wall_seconds": {
+      "evomaster|booking": {
+        "a12": 1.0,
+        "magnitude": "large",
+        "p_holm": 0.2,
+        "p_value": 0.1
+      },
       "hypothesis|booking": {
         "a12": 0.0,
         "magnitude": "large",
-        "p_holm": 0.1,
+        "p_holm": 0.2,
         "p_value": 0.1
       }
     }
   },
   "data": {
+    "evomaster": {
+      "booking": {
+        "branch_coverage": [
+          0.6666666666666666,
+          0.6666666666666666,
+          0.6666666666666666
+        ],
+        "http_calls": [
+          456.0,
+          458.0,
+          464.0
+        ],
+        "line_coverage": [
+          0.8372093023255814,
+          0.8372093023255814,
+          0.8372093023255814
+        ],
+        "line_retention": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "operation_attempt_coverage": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "operation_success_coverage": [
+          0.3333333333333333,
+          0.3333333333333333,
+          0.3333333333333333
+        ],
+        "output_line_coverage": [
+          0.8372093023255814,
+          0.8372093023255814,
+          0.8372093023255814
+        ],
+        "pass_rate": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "unique_crash_locations": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "unique_failures": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "wall_seconds": [
+          22.56,
+          22.512,
+          22.946
+        ]
+      }
+    },
     "hypothesis": {
       "booking": {
         "branch_coverage": [
@@ -122,9 +240,9 @@
           0.5
         ],
         "http_calls": [
-          206.0,
-          66.0,
-          66.0
+          33.0,
+          33.0,
+          33.0
         ],
         "line_coverage": [
           0.813953488372093,
@@ -167,9 +285,9 @@
           1.0
         ],
         "wall_seconds": [
-          0.816,
-          0.719,
-          0.716
+          1.368,
+          1.418,
+          1.42
         ]
       }
     },
@@ -181,9 +299,9 @@
           0.6666666666666666
         ],
         "http_calls": [
-          1183.0,
-          791.0,
-          794.0
+          388.0,
+          391.0,
+          397.0
         ],
         "line_coverage": [
           0.8372093023255814,
@@ -211,16 +329,17 @@
           1.0
         ],
         "wall_seconds": [
-          20.531,
-          20.526,
-          20.572
+          20.541,
+          20.71,
+          20.498
         ]
       }
     }
   },
   "groups": [
     "schemathesis",
-    "hypothesis"
+    "hypothesis",
+    "evomaster"
   ],
   "name": "smoke-booking",
   "reference": "schemathesis"

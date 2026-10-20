@@ -15,6 +15,7 @@ the service through the recording proxy, so all tools are measured the same way.
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 import time
 from dataclasses import dataclass
@@ -81,6 +82,10 @@ class Runner:
             return directory  # complete runs are never silently overwritten
         if directory.exists() and any(directory.iterdir()) and not force:
             raise RestgenError(f"incomplete run directory {directory}; rerun with --force")
+        if directory.exists():
+            # Nothing of an earlier attempt may survive: traffic logs, tool caches and
+            # reports would otherwise leak into (and inflate) the new run.
+            shutil.rmtree(directory)
         directory.mkdir(parents=True, exist_ok=True)
         service = self.registry.service(request.service)
         suite = self.registry.suite(service.suite)
