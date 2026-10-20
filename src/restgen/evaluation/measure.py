@@ -12,6 +12,7 @@ from typing import Any
 
 from restgen.coverage.models import CodeCoverage
 from restgen.evaluation.cost import Cost
+from restgen.evaluation.criteria import coverage_criteria
 from restgen.evaluation.faults import TRIAGE_FILE, fault_funnel, write_triage_template
 from restgen.evaluation.operations import SuccessCriterion, operation_coverage
 from restgen.evaluation.retention import CoverageRetention
@@ -93,6 +94,9 @@ def measure(directory: Path, source_root: Path | None = None) -> dict[str, Any]:
                 ).summary()
 
     success = SuccessCriterion(settings["success_status_min"], settings["success_status_max"])
+    metrics["criteria"] = coverage_criteria(
+        spec, traffic, int(run["settings"]["proxy"]["max_body_bytes"])
+    )
     metrics["timeline"] = timeline(
         spec,
         traffic,

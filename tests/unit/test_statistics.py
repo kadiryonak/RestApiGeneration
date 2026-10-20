@@ -62,3 +62,21 @@ def test_project_equal_mean_weights_services_equally() -> None:
 def test_invalid_samples(bad: list[float]) -> None:
     with pytest.raises(MeasurementError):
         median(bad)
+
+
+def test_friedman_and_mean_ranks() -> None:
+    from restgen.evaluation.statistics import friedman, mean_ranks
+
+    columns = {
+        "a": [0.9, 0.8, 0.85, 0.95, 0.7],
+        "b": [0.5, 0.4, 0.45, 0.55, 0.3],
+        "c": [0.1, 0.2, 0.15, 0.05, 0.1],
+    }
+    assert friedman(columns) < 0.05
+    assert mean_ranks(columns) == {"a": 1.0, "b": 2.0, "c": 3.0}
+    assert mean_ranks(columns, higher_is_better=False)["c"] == 1.0
+    assert friedman({"a": [1, 2], "b": [1, 2], "c": [1, 2]}) == 1.0
+    with pytest.raises(MeasurementError):
+        friedman({"a": [1, 2], "b": [1, 2]})
+    with pytest.raises(MeasurementError):
+        friedman({"a": [1, 2], "b": [1], "c": [1, 2]})

@@ -84,6 +84,37 @@ def wilcoxon(x: Sequence[float], y: Sequence[float]) -> Comparison:
     return Comparison(float(result.pvalue), a12(x, y))
 
 
+def friedman(per_tool: Mapping[str, Sequence[float]]) -> float:
+    """Friedman test over k >= 3 tools measured on the same services (one value per
+    service, e.g. the per-service median), as in Open Problems (TOSEM'23) and WFC.
+    Returns the p-value; identical columns give 1.0."""
+    columns = list(per_tool.values())
+    if len(columns) < 3:
+        raise MeasurementError("the Friedman test needs at least three tools")
+    lengths = {len(c) for c in columns}
+    if len(lengths) != 1 or lengths.pop() < 2:
+        raise MeasurementError("every tool needs the same number (>= 2) of services")
+    if all(list(c) == list(columns[0]) for c in columns):
+        return 1.0
+    return float(scistats.friedmanchisquare(*columns).pvalue)
+
+
+def mean_ranks(
+    per_tool: Mapping[str, Sequence[float]], higher_is_better: bool = True
+) -> dict[str, float]:
+    """Average rank of each tool over services (1 = best), ties sharing ranks."""
+    tools = list(per_tool)
+    n = len(next(iter(per_tool.values())))
+    totals = dict.fromkeys(tools, 0.0)
+    for i in range(n):
+        values = [per_tool[t][i] for t in tools]
+        sign = -1.0 if higher_is_better else 1.0
+        ranks = scistats.rankdata([sign * v for v in values])
+        for tool, rank in zip(tools, ranks, strict=True):
+            totals[tool] += float(rank)
+    return {tool: total / n for tool, total in totals.items()}
+
+
 def holm(p_values: Mapping[str, float]) -> dict[str, float]:
     """Holm-Bonferroni adjusted p-values (monotone, capped at 1)."""
     ordered = sorted(p_values.items(), key=lambda item: item[1])

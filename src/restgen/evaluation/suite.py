@@ -101,6 +101,7 @@ class SuiteQuality:
     passed: int
     reruns: int
     flaky: tuple[str, ...]  # tests whose outcome differed between clean re-executions
+    problems: int = 0  # failed or errored tests in the reference run
 
     @property
     def stable(self) -> int:
@@ -114,6 +115,8 @@ class SuiteQuality:
             "tests": self.tests,
             "oracle_reached_rate": ratio(self.oracle_reached, self.tests),
             "pass_rate": ratio(self.passed, self.tests),
+            # WFC §6.2: (errors + failures) / tests, from the reference run
+            "problem_rate": ratio(self.problems, self.tests),
             "reruns": self.reruns,
             "stable_rate": ratio(self.stable, self.tests) if self.reruns > 1 else None,
             "flaky_tests": list(self.flaky),
@@ -145,6 +148,9 @@ def suite_quality(
         tests=len(first),
         oracle_reached=sum(r.outcome.reached_oracle for r in first),
         passed=sum(r.outcome is Outcome.PASSED for r in first),
+        problems=sum(
+            r.outcome in (Outcome.ASSERTION_FAILED, Outcome.FAILED, Outcome.ERROR) for r in first
+        ),
         reruns=len(runs),
         flaky=flaky,
     )

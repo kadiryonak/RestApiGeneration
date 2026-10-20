@@ -40,6 +40,8 @@ def test_first_times_curves_and_auc() -> None:
     # (9 + 6 + 2) seconds of success out of 4 operations x 10 s
     assert summary["success_coverage_auc"] == pytest.approx(17 / 40)
     assert summary["time_to_last_new_success"] == 8.0
+    assert summary["requests"] == 6
+    assert summary["success_curve_by_request"] == [[1, 1], [3, 2], [6, 3]]
 
 
 def test_defaults_without_traffic_or_origin() -> None:

@@ -13,7 +13,7 @@ All times are seconds since the tool was started (``origin``):
 from __future__ import annotations
 
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from restgen.evaluation.faults import failure_signature
@@ -29,6 +29,9 @@ class Timeline:
     first_failure: dict[str, float]  # failure signature -> first time
     in_scope: int
     budget_seconds: float
+    # request index (1-based, in time order) at which each operation first succeeded
+    success_at_request: dict[str, int] = field(default_factory=dict)
+    requests: int = 0
 
     def curve(self, firsts: dict[str, float]) -> list[list[float]]:
         """Step curve [[t, cumulative count], ...]."""
@@ -55,6 +58,11 @@ class Timeline:
             "attempted_curve": self.curve(self.first_attempt),
             "success_curve": self.curve(self.first_success),
             "failure_curve": self.curve(self.first_failure),
+            # RESTgym: effectiveness over the number of HTTP interactions
+            "requests": self.requests,
+            "success_curve_by_request": [
+                [n, i + 1] for i, n in enumerate(sorted(self.success_at_request.values()))
+            ],
         }
 
 
@@ -72,7 +80,9 @@ def timeline(
     attempt: dict[str, float] = {}
     succeeded: dict[str, float] = {}
     failed: dict[str, float] = {}
-    for interaction in sorted(interactions, key=lambda i: i.started_at):
+    at_request: dict[str, int] = {}
+    ordered = sorted(interactions, key=lambda i: i.started_at)
+    for number, interaction in enumerate(ordered, start=1):
         t = round(max(0.0, interaction.started_at - start), 3)
         matched = spec.match(interaction.method, interaction.target)
         if matched.operation is not None and matched.operation.key in in_scope:
@@ -80,6 +90,7 @@ def timeline(
             attempt.setdefault(key, t)
             if success(interaction.status):
                 succeeded.setdefault(key, t)
+                at_request.setdefault(key, number)
         if interaction.status is not None and interaction.status >= server_error_min:
             name = (
                 matched.operation.key
@@ -89,4 +100,6 @@ def timeline(
             failed.setdefault(
                 failure_signature(name, interaction.status, interaction.response_body), t
             )
-    return Timeline(attempt, succeeded, failed, len(in_scope), budget_seconds)
+    return Timeline(
+        attempt, succeeded, failed, len(in_scope), budget_seconds, at_request, len(ordered)
+    )

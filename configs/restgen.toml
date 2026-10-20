@@ -23,7 +23,8 @@ server_error_min = 500
 rerun_count = 3
 
 [proxy]
-max_body_bytes = 4096
+# response bodies up to this size are stored whole (response-property coverage needs them)
+max_body_bytes = 65536
 redact_headers = ["authorization", "cookie", "set-cookie", "x-api-key"]
 
 [tools.schemathesis]

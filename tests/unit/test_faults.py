@@ -99,3 +99,31 @@ RuntimeError: boom
         "KeyError @ app.py:40": 2,
         "RuntimeError @ <outside service code>": 1,
     }
+
+
+def test_failure_points_and_per_operation_counts(tmp_path: Path) -> None:
+    from restgen.evaluation.faults import failure_points
+
+    root = tmp_path / "svc"
+    log = f'''Traceback (most recent call last):
+  File "{root}/app.py", line 40, in create_booking
+    price = room_prices[booking.room_type]
+KeyError: 'x'
+Traceback (most recent call last):
+  File "{root}/app.py", line 12, in parse
+  File "/usr/lib/python3.12/json/decoder.py", line 355, in raw_decode
+json.decoder.JSONDecodeError: Expecting value
+'''
+    points, library = failure_points(log, root)
+    assert points == {
+        "create_booking @ app.py:40": 1,
+        "raw_decode @ /usr/lib/python3.12/json/decoder.py:355": 1,
+    }
+    assert library == {"raw_decode @ /usr/lib/python3.12/json/decoder.py:355"}
+
+    funnel = fault_funnel(SPEC, _traffic(), 500, tmp_path / "t.toml", log, root)
+    summary = funnel.summary()
+    assert summary["operations_with_500"] == 2  # POST /bookings, GET /bookings/{id}
+    assert summary["operations_with_5xx"] == 3  # + the unmatched 503
+    assert summary["unique_failure_points"] == 2
+    assert summary["unique_library_failure_points"] == 1

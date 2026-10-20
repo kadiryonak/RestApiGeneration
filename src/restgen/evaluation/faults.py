@@ -20,7 +20,7 @@ import re
 import tomllib
 from collections import Counter
 from collections.abc import Iterable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
@@ -64,6 +64,11 @@ class FaultFunnel:
     verdicts: Mapping[str, Verdict]
     root_causes: Mapping[str, str]  # signature -> root cause id (verified bugs only)
     crash_locations: Mapping[str, int]  # "ExcType @ file:line" -> occurrences in server log
+    # operations (or unmatched paths) with >= 1 response of 500 / of any 5xx
+    operations_with_500: frozenset[str] = frozenset()
+    operations_with_5xx: frozenset[str] = frozenset()
+    failure_points: Mapping[str, int] = field(default_factory=dict)
+    library_failure_points: frozenset[str] = frozenset()
 
     @property
     def verified_bugs(self) -> int:
@@ -89,6 +94,12 @@ class FaultFunnel:
             "candidate_calls": self.candidate_calls,
             "unique_failures": len(self.unique_failures),
             "unique_crash_locations": len(self.crash_locations),
+            # WFC (2) / EvoMaster TOSEM'19: endpoints with at least one 500 (5xx)
+            "operations_with_500": len(self.operations_with_500),
+            "operations_with_5xx": len(self.operations_with_5xx),
+            # Kim et al. ISSTA'22: unique failure points (top frame) and those in libraries
+            "unique_failure_points": len(self.failure_points),
+            "unique_library_failure_points": len(self.library_failure_points),
             "triage_complete": complete,
             "unreviewed_failures": self.unreviewed,
             # verified counts are only meaningful once triage is complete
@@ -186,6 +197,38 @@ def crash_locations(log: str, source_root: Path) -> dict[str, int]:
     return dict(found)
 
 
+def failure_points(log: str, source_root: Path) -> tuple[dict[str, int], set[str]]:
+    """Kim et al. (ISSTA'22): a failure point is the method-line pair at the top of the
+    stack trace (Python: the innermost frame, wherever it is). Returns the points with
+    their counts and the subset whose top frame is library code (outside the service)."""
+    root = str(source_root.resolve())
+    points: Counter[str] = Counter()
+    library: set[str] = set()
+    top: tuple[str, str, str, bool] | None = None
+    in_traceback = False
+    for line in log.splitlines():
+        if line.startswith("Traceback (most recent call last)"):
+            in_traceback, top = True, None
+            continue
+        if not in_traceback:
+            continue
+        match = _FRAME.match(line)
+        if match:
+            path = match["file"]
+            own = path.startswith(root) and "site-packages" not in path
+            shown = path[len(root) :].lstrip("/") if own else path
+            top = (shown, match["line"], match["func"], not own)
+            continue
+        if _EXCEPTION.match(line):
+            if top is not None:
+                point = f"{top[2]} @ {top[0]}:{top[1]}"
+                points[point] += 1
+                if top[3]:
+                    library.add(point)
+            in_traceback = False
+    return dict(points), library
+
+
 def load_triage(path: Path) -> tuple[dict[str, Verdict], dict[str, str]]:
     """``triage.toml``: ``[failure.<signature>] verdict = "...", root_cause = "..."``."""
     if not path.is_file():
@@ -242,6 +285,7 @@ def fault_funnel(
 ) -> FaultFunnel:
     candidates, failures = unique_failures(spec, interactions, server_error_min)
     verdicts, causes = load_triage(triage)
+    points, library = failure_points(server_log, source_root) if source_root else ({}, set())
     known = {f.signature for f in failures}
     return FaultFunnel(
         candidate_calls=candidates,
@@ -249,4 +293,8 @@ def fault_funnel(
         verdicts={s: v for s, v in verdicts.items() if s in known},
         root_causes={s: c for s, c in causes.items() if s in known},
         crash_locations=crash_locations(server_log, source_root) if source_root else {},
+        operations_with_500=frozenset(f.operation for f in failures if f.status == 500),
+        operations_with_5xx=frozenset(f.operation for f in failures),
+        failure_points=points,
+        library_failure_points=frozenset(library),
     )

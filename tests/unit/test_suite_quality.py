@@ -67,6 +67,7 @@ def test_suite_quality_stages_and_flakiness(tmp_path: Path) -> None:
     assert summary["collectable_rate"] == 0.5
     assert summary["oracle_reached_rate"] == 0.75
     assert summary["pass_rate"] == 0.5
+    assert summary["problem_rate"] == 0.5  # one assertion failure + one other failure
     assert summary["flaky_tests"] == ["a::3", "a::4"]
     assert summary["stable_rate"] == 0.5
 

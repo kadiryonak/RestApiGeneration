@@ -18,7 +18,15 @@ from typing import Any
 
 from restgen.errors import RestgenError
 from restgen.evaluation.measure import METRICS_FILE
-from restgen.evaluation.statistics import holm, iqr, mann_whitney, median, project_equal_mean
+from restgen.evaluation.statistics import (
+    friedman,
+    holm,
+    iqr,
+    mann_whitney,
+    mean_ranks,
+    median,
+    project_equal_mean,
+)
 
 
 @dataclass(frozen=True)
@@ -50,6 +58,16 @@ METRICS = (
     Metric("output_line_coverage", _path("output_coverage", "line_coverage"), True),
     Metric("line_retention", _path("retention", "line_retention"), True),
     Metric("pass_rate", _path("suite", "pass_rate"), None),
+    Metric("problem_rate", _path("suite", "problem_rate"), None),
+    Metric("status_code_coverage", _path("criteria", "status_code", "ratio"), True),
+    Metric("parameter_coverage", _path("criteria", "parameter", "ratio"), True),
+    Metric("parameter_value_coverage", _path("criteria", "parameter_value", "ratio"), True),
+    Metric(
+        "response_property_coverage", _path("criteria", "response_body_properties", "ratio"), True
+    ),
+    Metric("test_coverage_level", _path("criteria", "test_coverage_level"), True),
+    Metric("operations_with_500", _path("faults", "operations_with_500"), True),
+    Metric("unique_failure_points", _path("faults", "unique_failure_points"), True),
     Metric("success_coverage_auc", _path("timeline", "success_coverage_auc"), True),
     Metric("time_to_first_failure", _path("timeline", "time_to_first_failure"), False),
     Metric("http_calls", _path("cost", "http_calls"), None),
@@ -170,6 +188,41 @@ def build_report(
                 )
         lines.append("")
 
+    rankings: dict[str, dict[str, Any]] = {}
+    if len(labels) >= 3:
+        lines += [
+            "## Ranking over services (Friedman test on per-service medians)",
+            "",
+            "| Metric | p | " + " | ".join(f"mean rank {label}" for label in labels) + " |",
+            "|---|---|" + "---|" * len(labels),
+        ]
+        for metric in METRICS:
+            if metric.higher_is_better is None:
+                continue
+            shared = [
+                s
+                for s in services
+                if all(data[label].get(s, {}).get(metric.name) for label in labels)
+            ]
+            if len(shared) < 2:
+                continue
+            columns = {
+                label: [median(data[label][s][metric.name]) for s in shared] for label in labels
+            }
+            p_value = friedman(columns)
+            ranks = mean_ranks(columns, metric.higher_is_better)
+            rankings[metric.name] = {
+                "p_value": p_value,
+                "mean_ranks": ranks,
+                "services": len(shared),
+            }
+            lines.append(
+                f"| {metric.name} | {p_value:.3g} | "
+                + " | ".join(f"{ranks[label]:.2f}" for label in labels)
+                + " |"
+            )
+        lines.append("")
+
     payload = {
         "name": name,
         "reference": reference,
@@ -177,6 +230,7 @@ def build_report(
         "data": data,
         "comparisons": comparisons,
         "aggregates": aggregates,
+        "rankings": rankings,
     }
     return "\n".join(lines), payload
 
