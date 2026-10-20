@@ -1,0 +1,800 @@
+{
+  "aggregates": {
+    "artificial": {
+      "branch_coverage": {
+        "schemathesis": 0.6666666666666666
+      },
+      "http_calls": {
+        "schemathesis": 381.5
+      },
+      "line_coverage": {
+        "schemathesis": 0.8372093023255814
+      },
+      "llm_calls": {
+        "schemathesis": 0.0
+      },
+      "operation_attempt_coverage": {
+        "schemathesis": 1.0
+      },
+      "operation_success_coverage": {
+        "schemathesis": 0.3333333333333333
+      },
+      "operations_with_500": {
+        "schemathesis": 1.0
+      },
+      "parameter_coverage": {
+        "schemathesis": 1.0
+      },
+      "response_property_coverage": {
+        "schemathesis": 0.23076923076923078
+      },
+      "status_code_coverage": {
+        "schemathesis": 0.5714285714285714
+      },
+      "success_coverage_auc": {
+        "schemathesis": 0.28407499999999997
+      },
+      "test_coverage_level": {
+        "schemathesis": 3.0
+      },
+      "time_to_first_failure": {
+        "schemathesis": 1.5755
+      },
+      "unique_crash_locations": {
+        "schemathesis": 1.0
+      },
+      "unique_failure_points": {
+        "schemathesis": 1.0
+      },
+      "unique_failures": {
+        "schemathesis": 1.0
+      },
+      "usd": {
+        "schemathesis": 0.0
+      },
+      "wall_seconds": {
+        "schemathesis": 20.5475
+      }
+    },
+    "real": {
+      "branch_coverage": {
+        "evomaster": 0.8333333333333334,
+        "hypothesis": 0.6111111111111112,
+        "schemathesis": 0.8333333333333334
+      },
+      "http_calls": {
+        "evomaster": 168.0,
+        "hypothesis": 124.0,
+        "schemathesis": 291.0
+      },
+      "line_coverage": {
+        "evomaster": 0.8192419825072886,
+        "hypothesis": 0.7842565597667639,
+        "schemathesis": 0.8192419825072886
+      },
+      "line_retention": {
+        "evomaster": 1.0,
+        "hypothesis": 1.0
+      },
+      "llm_calls": {
+        "evomaster": 0.0,
+        "hypothesis": 0.0,
+        "schemathesis": 0.0
+      },
+      "operation_attempt_coverage": {
+        "evomaster": 1.0,
+        "hypothesis": 1.0,
+        "schemathesis": 1.0
+      },
+      "operation_success_coverage": {
+        "evomaster": 1.0,
+        "hypothesis": 0.5,
+        "schemathesis": 1.0
+      },
+      "operations_with_500": {
+        "evomaster": 0.0,
+        "hypothesis": 0.0,
+        "schemathesis": 0.0
+      },
+      "output_line_coverage": {
+        "evomaster": 0.8192419825072886,
+        "hypothesis": 0.7842565597667639
+      },
+      "parameter_coverage": {
+        "evomaster": 1.0,
+        "hypothesis": 1.0,
+        "schemathesis": 1.0
+      },
+      "pass_rate": {
+        "evomaster": 1.0,
+        "hypothesis": 1.0
+      },
+      "problem_rate": {
+        "evomaster": 0.0,
+        "hypothesis": 0.0
+      },
+      "response_property_coverage": {
+        "evomaster": 0.9117647058823529,
+        "hypothesis": 0.5073529411764706,
+        "schemathesis": 0.8823529411764706
+      },
+      "status_code_coverage": {
+        "evomaster": 1.0,
+        "hypothesis": 0.6666666666666666,
+        "schemathesis": 1.0
+      },
+      "success_coverage_auc": {
+        "evomaster": 0.85803125,
+        "hypothesis": 0.46180625,
+        "schemathesis": 0.9154312499999999
+      },
+      "test_coverage_level": {
+        "evomaster": 2.0,
+        "hypothesis": 2.0,
+        "schemathesis": 2.0
+      },
+      "unique_crash_locations": {
+        "evomaster": 0.0,
+        "hypothesis": 0.0,
+        "schemathesis": 0.0
+      },
+      "unique_failure_points": {
+        "evomaster": 0.0,
+        "hypothesis": 0.0,
+        "schemathesis": 0.0
+      },
+      "unique_failures": {
+        "evomaster": 0.0,
+        "hypothesis": 0.0,
+        "schemathesis": 0.0
+      },
+      "usd": {
+        "evomaster": 0.0,
+        "hypothesis": 0.0,
+        "schemathesis": 0.0
+      },
+      "wall_seconds": {
+        "evomaster": 24.679,
+        "hypothesis": 3.274,
+        "schemathesis": 20.525
+      }
+    }
+  },
+  "comparisons": {
+    "branch_coverage": {
+      "evomaster|age-of-empires-2-api": {
+        "a12": 0.6666666666666666,
+        "magnitude": "medium",
+        "p_holm": 0.5049850750938458,
+        "p_value": 0.5049850750938458
+      },
+      "hypothesis|age-of-empires-2-api": {
+        "a12": 0.0,
+        "magnitude": "large",
+        "p_holm": 0.1186928775838397,
+        "p_value": 0.05934643879191985
+      }
+    },
+    "http_calls": {
+      "evomaster|age-of-empires-2-api": {
+        "a12": 0.0,
+        "magnitude": "large",
+        "p_holm": 0.1186928775838397,
+        "p_value": 0.07652250047505922
+      },
+      "hypothesis|age-of-empires-2-api": {
+        "a12": 0.0,
+        "magnitude": "large",
+        "p_holm": 0.1186928775838397,
+        "p_value": 0.05934643879191985
+      }
+    },
+    "line_coverage": {
+      "evomaster|age-of-empires-2-api": {
+        "a12": 0.6666666666666666,
+        "magnitude": "medium",
+        "p_holm": 0.5049850750938458,
+        "p_value": 0.5049850750938458
+      },
+      "hypothesis|age-of-empires-2-api": {
+        "a12": 0.0,
+        "magnitude": "large",
+        "p_holm": 0.1186928775838397,
+        "p_value": 0.05934643879191985
+      }
+    },
+    "line_retention": {},
+    "llm_calls": {
+      "evomaster|age-of-empires-2-api": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      },
+      "hypothesis|age-of-empires-2-api": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      }
+    },
+    "operation_attempt_coverage": {
+      "evomaster|age-of-empires-2-api": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      },
+      "hypothesis|age-of-empires-2-api": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      }
+    },
+    "operation_success_coverage": {
+      "evomaster|age-of-empires-2-api": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      },
+      "hypothesis|age-of-empires-2-api": {
+        "a12": 0.0,
+        "magnitude": "large",
+        "p_holm": 0.09370835520774752,
+        "p_value": 0.04685417760387376
+      }
+    },
+    "operations_with_500": {
+      "evomaster|age-of-empires-2-api": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      },
+      "hypothesis|age-of-empires-2-api": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      }
+    },
+    "output_line_coverage": {},
+    "parameter_coverage": {
+      "evomaster|age-of-empires-2-api": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      },
+      "hypothesis|age-of-empires-2-api": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      }
+    },
+    "parameter_value_coverage": {},
+    "pass_rate": {},
+    "problem_rate": {},
+    "response_property_coverage": {
+      "evomaster|age-of-empires-2-api": {
+        "a12": 1.0,
+        "magnitude": "large",
+        "p_holm": 0.1186928775838397,
+        "p_value": 0.07652250047505922
+      },
+      "hypothesis|age-of-empires-2-api": {
+        "a12": 0.0,
+        "magnitude": "large",
+        "p_holm": 0.1186928775838397,
+        "p_value": 0.05934643879191985
+      }
+    },
+    "status_code_coverage": {
+      "evomaster|age-of-empires-2-api": {
+        "a12": 0.6666666666666666,
+        "magnitude": "medium",
+        "p_holm": 0.5049850750938458,
+        "p_value": 0.5049850750938458
+      },
+      "hypothesis|age-of-empires-2-api": {
+        "a12": 0.0,
+        "magnitude": "large",
+        "p_holm": 0.1186928775838397,
+        "p_value": 0.05934643879191985
+      }
+    },
+    "success_coverage_auc": {
+      "evomaster|age-of-empires-2-api": {
+        "a12": 0.0,
+        "magnitude": "large",
+        "p_holm": 0.2,
+        "p_value": 0.1
+      },
+      "hypothesis|age-of-empires-2-api": {
+        "a12": 0.0,
+        "magnitude": "large",
+        "p_holm": 0.2,
+        "p_value": 0.1
+      }
+    },
+    "test_coverage_level": {
+      "evomaster|age-of-empires-2-api": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      },
+      "hypothesis|age-of-empires-2-api": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      }
+    },
+    "time_to_first_failure": {},
+    "unique_crash_locations": {
+      "evomaster|age-of-empires-2-api": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      },
+      "hypothesis|age-of-empires-2-api": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      }
+    },
+    "unique_failure_points": {
+      "evomaster|age-of-empires-2-api": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      },
+      "hypothesis|age-of-empires-2-api": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      }
+    },
+    "unique_failures": {
+      "evomaster|age-of-empires-2-api": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      },
+      "hypothesis|age-of-empires-2-api": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      }
+    },
+    "usd": {
+      "evomaster|age-of-empires-2-api": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      },
+      "hypothesis|age-of-empires-2-api": {
+        "a12": 0.5,
+        "magnitude": "negligible",
+        "p_holm": 1.0,
+        "p_value": 1.0
+      }
+    },
+    "wall_seconds": {
+      "evomaster|age-of-empires-2-api": {
+        "a12": 1.0,
+        "magnitude": "large",
+        "p_holm": 0.2,
+        "p_value": 0.1
+      },
+      "hypothesis|age-of-empires-2-api": {
+        "a12": 0.0,
+        "magnitude": "large",
+        "p_holm": 0.2,
+        "p_value": 0.1
+      }
+    }
+  },
+  "data": {
+    "evomaster": {
+      "age-of-empires-2-api": {
+        "branch_coverage": [
+          0.8333333333333334,
+          0.8333333333333334,
+          0.8333333333333334
+        ],
+        "http_calls": [
+          158.0,
+          168.0,
+          178.0
+        ],
+        "line_coverage": [
+          0.8192419825072886,
+          0.8192419825072886,
+          0.8192419825072886
+        ],
+        "line_retention": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "llm_calls": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "operation_attempt_coverage": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "operation_success_coverage": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "operations_with_500": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "output_line_coverage": [
+          0.8192419825072886,
+          0.8192419825072886,
+          0.8192419825072886
+        ],
+        "parameter_coverage": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass_rate": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "problem_rate": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "response_property_coverage": [
+          0.9044117647058824,
+          0.9117647058823529,
+          0.9411764705882353
+        ],
+        "status_code_coverage": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "success_coverage_auc": [
+          0.8667374999999999,
+          0.85803125,
+          0.7956749999999999
+        ],
+        "test_coverage_level": [
+          2.0,
+          2.0,
+          2.0
+        ],
+        "unique_crash_locations": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "unique_failure_points": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "unique_failures": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "usd": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "wall_seconds": [
+          24.679,
+          24.182,
+          25.087
+        ]
+      }
+    },
+    "hypothesis": {
+      "age-of-empires-2-api": {
+        "branch_coverage": [
+          0.6111111111111112,
+          0.6111111111111112,
+          0.6111111111111112
+        ],
+        "http_calls": [
+          124.0,
+          124.0,
+          124.0
+        ],
+        "line_coverage": [
+          0.7842565597667639,
+          0.7842565597667639,
+          0.7842565597667639
+        ],
+        "line_retention": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "llm_calls": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "operation_attempt_coverage": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "operation_success_coverage": [
+          0.5,
+          0.5,
+          0.5
+        ],
+        "operations_with_500": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "output_line_coverage": [
+          0.7842565597667639,
+          0.7842565597667639,
+          0.7842565597667639
+        ],
+        "parameter_coverage": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "pass_rate": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "problem_rate": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "response_property_coverage": [
+          0.5073529411764706,
+          0.5073529411764706,
+          0.5073529411764706
+        ],
+        "status_code_coverage": [
+          0.6666666666666666,
+          0.6666666666666666,
+          0.6666666666666666
+        ],
+        "success_coverage_auc": [
+          0.4607374999999999,
+          0.46180625,
+          0.46217499999999995
+        ],
+        "test_coverage_level": [
+          2.0,
+          2.0,
+          2.0
+        ],
+        "unique_crash_locations": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "unique_failure_points": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "unique_failures": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "usd": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "wall_seconds": [
+          3.323,
+          3.274,
+          3.177
+        ]
+      }
+    },
+    "schemathesis": {
+      "age-of-empires-2-api": {
+        "branch_coverage": [
+          0.7777777777777778,
+          0.8333333333333334,
+          0.8333333333333334
+        ],
+        "http_calls": [
+          291.0,
+          291.0,
+          299.0
+        ],
+        "line_coverage": [
+          0.8017492711370262,
+          0.8192419825072886,
+          0.8192419825072886
+        ],
+        "llm_calls": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "operation_attempt_coverage": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "operation_success_coverage": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "operations_with_500": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "parameter_coverage": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "response_property_coverage": [
+          0.875,
+          0.8823529411764706,
+          0.8823529411764706
+        ],
+        "status_code_coverage": [
+          0.9166666666666666,
+          1.0,
+          1.0
+        ],
+        "success_coverage_auc": [
+          0.9134375,
+          0.9154312499999999,
+          0.9179875
+        ],
+        "test_coverage_level": [
+          2.0,
+          2.0,
+          2.0
+        ],
+        "unique_crash_locations": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "unique_failure_points": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "unique_failures": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "usd": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "wall_seconds": [
+          20.562,
+          20.516,
+          20.525
+        ]
+      },
+      "booking": {
+        "branch_coverage": [
+          0.6666666666666666,
+          0.6666666666666666
+        ],
+        "http_calls": [
+          384.0,
+          379.0
+        ],
+        "line_coverage": [
+          0.8372093023255814,
+          0.8372093023255814
+        ],
+        "llm_calls": [
+          0.0,
+          0.0
+        ],
+        "operation_attempt_coverage": [
+          1.0,
+          1.0
+        ],
+        "operation_success_coverage": [
+          0.3333333333333333,
+          0.3333333333333333
+        ],
+        "operations_with_500": [
+          1.0,
+          1.0
+        ],
+        "parameter_coverage": [
+          1.0,
+          1.0
+        ],
+        "response_property_coverage": [
+          0.23076923076923078,
+          0.23076923076923078
+        ],
+        "status_code_coverage": [
+          0.5714285714285714,
+          0.5714285714285714
+        ],
+        "success_coverage_auc": [
+          0.28415,
+          0.284
+        ],
+        "test_coverage_level": [
+          3.0,
+          3.0
+        ],
+        "time_to_first_failure": [
+          1.529,
+          1.622
+        ],
+        "unique_crash_locations": [
+          1.0,
+          1.0
+        ],
+        "unique_failure_points": [
+          1.0,
+          1.0
+        ],
+        "unique_failures": [
+          1.0,
+          1.0
+        ],
+        "usd": [
+          0.0,
+          0.0
+        ],
+        "wall_seconds": [
+          20.523,
+          20.572
+        ]
+      }
+    }
+  },
+  "groups": [
+    "schemathesis",
+    "hypothesis",
+    "evomaster"
+  ],
+  "name": "pilot-python",
+  "rankings": {},
+  "reference": "schemathesis"
+}

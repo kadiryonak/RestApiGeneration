@@ -121,6 +121,9 @@ class ServiceEnvironment:
         self.root.mkdir(parents=True, exist_ok=True)
         if launch.source_repository:
             checkout(launch.source_repository, launch.source_commit, self.source)
+            for relative, line in launch.append_lines.items():
+                with (self.source / relative).open("a", encoding="utf-8") as handle:
+                    handle.write("\n" + line + "\n")
         python = launch.python or SERVICE_PYTHON
         uv_env = dict(os.environ)
         if self.toolchain is not None:
@@ -267,7 +270,9 @@ class ServiceProcess:
         if self.coverage_data is not None:
             self.coverage_data.parent.mkdir(parents=True, exist_ok=True)
             self.coverage_data.unlink(missing_ok=True)
-        env = {**os.environ, **self.service.launch.env, "PYTHONUNBUFFERED": "1"}
+        self._reset_state()
+        launch_env = {k: self._sub(v) for k, v in self.service.launch.env.items()}
+        env = {**os.environ, **launch_env, "PYTHONUNBUFFERED": "1"}
         with self.log_path.open("ab") as log:
             self._process = subprocess.Popen(
                 self.argv(),
@@ -279,6 +284,14 @@ class ServiceProcess:
             )
         self._wait_until_healthy()
         return self
+
+    def _reset_state(self) -> None:
+        paths = self.service.launch.reset_paths
+        if not paths:
+            return
+        if not self.service.launch.source_repository:
+            raise BenchmarkError(f"service {self.service.name}: reset_paths needs a source checkout")
+        _run(["git", "checkout", "--", *paths], cwd=self.environment.source)
 
     def stop(self) -> None:
         process = self._process

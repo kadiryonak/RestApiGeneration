@@ -83,7 +83,7 @@ def test_valid_manifest(tmp_path: Path) -> None:
         ('suite = "demo"', 'suite = "ghost"', "unknown suite"),
         ('suite = "demo"', 'suite = "specs"', "has no services"),
         ('role = "evaluation"', 'role = "testing"', "role must be one of"),
-        ('"--port", "{port}"', '"--port", "8000"', "port"),
+        ('"--port", "{port}"', '"--port", "8000"', "must contain the"),
         ('health = "/health"', 'health = "health"', "URL path"),
     ],
 )

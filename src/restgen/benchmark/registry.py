@@ -140,6 +140,8 @@ def _service(name: str, data: Mapping[str, Any]) -> Service:
         requirements_files=_strs(launch_raw, "requirements_files", f"{where}.launch"),
         skip_requirements=_strs(launch_raw, "skip_requirements", f"{where}.launch"),
         install_source=_bool(launch_raw, "install_source", f"{where}.launch"),
+        reset_paths=_strs(launch_raw, "reset_paths", f"{where}.launch"),
+        append_lines=_str_map(launch_raw, "append_lines", f"{where}.launch"),
     )
     if bool(launch.source_repository) != bool(launch.source_commit):
         raise ConfigError(f"{where}.launch: source_repository and source_commit go together")
@@ -147,8 +149,10 @@ def _service(name: str, data: Mapping[str, Any]) -> Service:
         raise ConfigError(f"{where}.launch.source_commit must be a full 40-character SHA")
     if launch.kind is LaunchKind.COMMAND and not launch.argv:
         raise ConfigError(f"{where}.launch.argv is required for kind 'command'")
-    if launch.kind is LaunchKind.COMMAND and "{port}" not in " ".join(launch.argv):
-        raise ConfigError(f"{where}.launch.argv must contain the {{port}} placeholder")
+    if launch.kind is LaunchKind.COMMAND and "{port}" not in " ".join(
+        (*launch.argv, *launch.env.values())
+    ):
+        raise ConfigError(f"{where}.launch: argv or env must contain the {{port}} placeholder")
     if launch.kind is LaunchKind.JVM:
         if not (launch.jdk and launch.jar):
             raise ConfigError(f"{where}.launch: kind 'jvm' needs jdk and jar")

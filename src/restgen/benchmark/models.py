@@ -56,7 +56,7 @@ class Launch:
     # COMMAND: placeholders {python} (service venv interpreter) and {port} are substituted.
     argv: tuple[str, ...] = ()
     workdir: str = "."  # relative to the suite checkout
-    env: Mapping[str, str] = field(default_factory=dict)
+    env: Mapping[str, str] = field(default_factory=dict)  # values may contain {port}
     requirements: tuple[str, ...] = ()  # installed into the service's own venv
     # COMMAND services whose code is not in the suite (WAFP: the suite only describes
     # targets): cloned at the pinned commit into the service's environment folder; workdir
@@ -69,6 +69,13 @@ class Launch:
     # that is replaced by the framework's own server)
     skip_requirements: tuple[str, ...] = ()
     install_source: bool = False  # pip install the source checkout itself
+    # Files (relative to code_root) restored from git before every start, for services that
+    # keep state in tracked files (e.g. a SQLite database): every start is a clean state
+    # (the analogue of EvoMaster's resetStateOfSUT).
+    reset_paths: tuple[str, ...] = ()
+    # Lines appended to files of the source checkout on setup (WAFP does the same in its
+    # Dockerfiles, e.g. to make a hard-coded server name configurable).
+    append_lines: Mapping[str, str] = field(default_factory=dict)
     image: str = ""  # CONTAINER
     # JVM: java from toolchain.jdks[jdk]; jar/build paths are relative to the suite
     # checkout; {port} is substituted in jvm_args and args.

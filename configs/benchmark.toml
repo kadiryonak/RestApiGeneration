@@ -250,3 +250,31 @@ env = { FLASK_APP = "app.py" }
 kind = "coveragepy"
 include = ["api", "db", "app.py", "config.py"]
 requirement = "coverage==7.10.7"
+
+[service.restler-demo]
+suite = "wafp"
+language = "python"
+framework = "flask-restplus"
+category = "artificial"
+role = "unassigned"
+openapi = "/api/swagger.json"
+health = "/api/swagger.json"
+notes = "WAFP target restler_demo (RESTler's demo blog API). Python 3.8 as in WAFP. State in a tracked SQLite file, restored before every start."
+
+[service.restler-demo.launch]
+kind = "command"
+source_repository = "https://github.com/microsoft/restler-fuzzer.git"
+source_commit = "ad867673db70c6f39807a57314a89e86e2346ece"
+python = "3.8"
+requirements_files = ["src/wafp/targets/catalog/restler_demo/requirements.txt"]
+workdir = "demo_server"
+argv = ["{python}", "demo_server/app.py"]
+env = { PYTHONPATH = ".", PORT = "{port}" }
+# as WAFP's Dockerfile: make the hard-coded SERVER_NAME follow the port
+append_lines = { "demo_server/demo_server/settings.py" = "import os;FLASK_SERVER_NAME = f\"127.0.0.1:{os.environ['PORT']}\"" }
+reset_paths = ["demo_server/demo_server/db.sqlite"]
+
+[service.restler-demo.coverage]
+kind = "coveragepy"
+include = ["demo_server", "helpers"]
+requirement = "coverage==7.6.1"
