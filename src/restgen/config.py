@@ -62,6 +62,14 @@ class HypothesisSettings:
 
 
 @dataclass(frozen=True)
+class EvoMasterSettings:
+    jar: Path
+    java: str  # executable name or path
+    python: Path  # environment the generated Python tests run in
+    extra_args: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class Settings:
     root: Path
     paths: PathSettings
@@ -71,6 +79,7 @@ class Settings:
     proxy: ProxySettings
     schemathesis: SchemathesisSettings
     hypothesis: HypothesisSettings
+    evomaster: EvoMasterSettings
 
     def to_dict(self) -> dict[str, Any]:
         def convert(value: Any) -> Any:
@@ -165,6 +174,7 @@ def _build(root: Path, raw: Mapping[str, Any]) -> Settings:
     proxy = _section(raw, "proxy")
     schemathesis = _section(raw, "tools", "schemathesis")
     hypothesis = _section(raw, "tools", "hypothesis")
+    evomaster = _section(raw, "tools", "evomaster")
 
     seeds = _get(repetitions, "seeds", list, "repetitions")
     if not seeds or not all(isinstance(s, int) and not isinstance(s, bool) for s in seeds):
@@ -199,6 +209,12 @@ def _build(root: Path, raw: Mapping[str, Any]) -> Settings:
         ),
         hypothesis=HypothesisSettings(
             python=root / _get(hypothesis, "python", str, "tools.hypothesis"),
+        ),
+        evomaster=EvoMasterSettings(
+            jar=root / _get(evomaster, "jar", str, "tools.evomaster"),
+            java=_get(evomaster, "java", str, "tools.evomaster"),
+            python=root / _get(evomaster, "python", str, "tools.evomaster"),
+            extra_args=_str_tuple(evomaster, "extra_args", "tools.evomaster"),
         ),
     )
     _validate(settings)

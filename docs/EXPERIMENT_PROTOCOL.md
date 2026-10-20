@@ -14,6 +14,14 @@ its date, reason and the runs it affects (which are then rerun).
 - Service roles (development / validation / evaluation) per service (analysis §6.2).
 - Operations excluded from scope (e.g. logout, admin reset) and why.
 - Success criterion for C_success (default 2xx) per service, if different.
+- **Oracle styles differ.** Schemathesis and the Hypothesis suite use a property oracle
+  ("no 5xx"): a test fails on a server error. EvoMaster writes regression oracles
+  (`assert status_code == 500` for the observed 500; the fault is only named in the test
+  name and a comment), so its suites pass on a buggy service. Pass rate is therefore not
+  comparable across tools; fault detection is measured from the proxy traffic for all
+  tools, and mutation scores must state which oracle style killed the mutants.
+- EvoMaster's search budget is `--maxTime` (clock-bounded like Schemathesis), but it also
+  spends time minimising and writing tests after the search; `wall_seconds` includes it.
 - Equal information for every tool: black-box (OpenAPI + credentials + responses) as the
   main line; white-box (source, coverage feedback) only as an extra experiment.
 

@@ -29,6 +29,11 @@ Every tool (the method and every baseline) is measured the same way:
    (output coverage, retention, stability);
 4. `restgen measure` computes `metrics.json` from the recorded artefacts only.
 
+The proxy port is fixed for a whole run, so suites that hard-code the URL they were
+generated against (EvoMaster) reach the clean services of the re-runs too. Tools that
+keep state between runs (Schemathesis' crash cache, EvoMaster's working files) run with
+the run's own `tool/` directory as working directory, so repetitions stay independent.
+
 Metric definitions live in the module docstrings of `src/restgen/evaluation/`
 (operation coverage, faults, suite quality, retention, mutation, repairs, cost,
 statistics). Undefined values are `None`, never a fake 0 or 1.
@@ -72,7 +77,8 @@ src/restgen/
   benchmark/            manifest registry, pinned suite fetcher, service runtime
   coverage/             coverage.py JSON and JaCoCo XML readers (covered sets kept)
   evaluation/           metrics, measure (metrics.json), statistics, comparison report
-  baselines/            comparison tools: Schemathesis CLI, Hypothesis pytest suite
+  baselines/            comparison tools: Schemathesis CLI, Hypothesis pytest suite,
+                        EvoMaster black-box (Python unittest output)
 tests/unit              fast, no network, no subprocess
 tests/integration       real services / subprocesses (marker: integration)
 tests/support           shared fakes and fixtures (e.g. a scripted fake LLM client)
@@ -83,6 +89,8 @@ schemathesis/           upstream Schemathesis clone for study (git-ignored, own 
                         never install restgen deps there or Schemathesis into restgen's .venv)
 hypothesis/             upstream Hypothesis clone for study (git-ignored, partial clone)
 .venvs/hypothesis/      Hypothesis baseline environment (`make tools`, git-ignored)
+.venvs/evomaster/       runs EvoMaster's generated Python tests (`make tools`, git-ignored)
+.tools/evomaster/       EvoMaster release jar, checksum-verified (`make tools`, git-ignored)
 ```
 
 Still to come with the method: an `abc/` search core (food source, colony, bee
@@ -97,11 +105,11 @@ source .venv/bin/activate
 make check            # ruff + ruff format --check + mypy --strict + unit tests
 make test-integration # tests marked integration
 make format           # auto-fix lint and formatting
-make tools            # Schemathesis + Hypothesis tool venvs from the pinned clones
+make tools            # Schemathesis, Hypothesis (pinned clones) and EvoMaster (release jar)
 
 restgen benchmark list|fetch|verify      # suites at pinned commits
 restgen benchmark setup -s booking       # service venv
-restgen run --run-id NAME -s booking -t schemathesis -t hypothesis [--seed N] [--force]
+restgen run --run-id NAME -s booking -t schemathesis -t hypothesis -t evomaster [--seed N] [--force]
 restgen measure results/runs/NAME/...    # recompute metrics.json (e.g. after triage)
 restgen report --name NAME --group a='NAME/*/schemathesis/*' --group b='NAME/*/hypothesis/*'
 restgen --set budget.max_time_seconds=600 run ...   # config overrides

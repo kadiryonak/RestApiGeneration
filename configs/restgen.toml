@@ -32,3 +32,11 @@ extra_args = ["--continue-on-failure", "--no-shrink", "--suppress-health-check",
 
 [tools.hypothesis]
 python = ".venvs/hypothesis/bin/python"
+
+[tools.evomaster]
+# Release v6.2.0 (tag commit efad6f2bd7ff0025852a6203d307303c568e763a), fetched by `make tools`.
+jar = ".tools/evomaster/6.2.0/evomaster.jar"
+java = "java"
+python = ".venvs/evomaster/bin/python"
+# Black-box mode, Python output. MIO/SMARTS default search; one test file.
+extra_args = ["--testSuiteSplitType", "NONE"]

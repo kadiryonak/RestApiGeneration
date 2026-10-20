@@ -22,6 +22,14 @@ implementations* is decided at the end of the review — see
 | Experiment protocol (frozen before the first run) | [docs/EXPERIMENT_PROTOCOL.md](docs/EXPERIMENT_PROTOCOL.md) |
 | Engineering rules, layout, commands | [AGENTS.md](AGENTS.md) |
 
+## Measurement infrastructure
+
+A recording proxy, services under coverage and a metric layer measure every tool the same
+way (see AGENTS.md). Comparison tools: **Schemathesis** (property-based, application),
+a **Hypothesis** suite generated from the OpenAPI document (library) and **EvoMaster**
+(search-based, black-box, Python output). Benchmark suites are pinned in
+`configs/benchmark.toml`.
+
 ## Development
 
 ```bash

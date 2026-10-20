@@ -38,7 +38,13 @@ def runner(tmp_path_factory: pytest.TempPathFactory) -> Runner:
     suite_ok = SuiteFetcher(settings.paths.benchmark_dir).verify(registry.suite(service.suite)).ok
     if not (suite_ok and ServiceEnvironment(service, settings.paths.benchmark_dir).ready):
         pytest.skip("booking not set up (restgen benchmark setup -s booking)")
-    if not (settings.schemathesis.executable.is_file() and settings.hypothesis.python.is_file()):
+    tools_ready = (
+        settings.schemathesis.executable.is_file()
+        and settings.hypothesis.python.is_file()
+        and settings.evomaster.jar.is_file()
+        and settings.evomaster.python.is_file()
+    )
+    if not tools_ready:
         pytest.skip("comparison tools not installed (make tools)")
     return Runner(settings, registry)
 
@@ -76,6 +82,20 @@ def test_hypothesis_suite_is_rerun_on_clean_services(runner: Runner) -> None:
     assert metrics["output_coverage"]["line_coverage"] > 0
     assert metrics["retention"]["line_retention"] is not None
     assert len(list((directory / "output").glob("rerun-*/traffic.jsonl"))) == 2
+
+
+def test_evomaster_suite_hard_codes_the_proxy_and_still_reruns(runner: Runner) -> None:
+    directory = runner.run(RunRequest("it", "booking", "evomaster", 42))
+    metrics = measure(directory, _source_root(runner))
+    assert metrics["faults"]["unique_failures"] >= 1
+    suite = metrics["suite"]
+    assert suite["tests"] >= 1
+    assert suite["reruns"] == 2  # no own reference run: both clean re-executions
+    # every rerun reached the clean service through the reused proxy port
+    for traffic in (directory / "output").glob("rerun-*/traffic.jsonl"):
+        assert traffic.stat().st_size > 0
+    # EvoMaster's working files stay inside the run directory
+    assert (directory / "tool" / "em.yaml").is_file()
 
 
 def _crashes(directory: Path, runner: Runner) -> list[str]:

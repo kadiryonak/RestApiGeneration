@@ -72,7 +72,11 @@ def measure(directory: Path, source_root: Path | None = None) -> dict[str, Any]:
     reruns = sorted((directory / "output").glob("rerun-*"), key=lambda p: int(p.name[6:]))
     tests_in_output: int | None = None
     if tests:
-        runs: list[list[TestResult]] = [read_junit(Path(run["tool"]["reports"]["junit"]))]
+        # Reference run: the tool's own execution of its suite when it has one (Hypothesis),
+        # otherwise the first clean re-execution (EvoMaster).
+        runs: list[list[TestResult]] = []
+        if "junit" in run["tool"]["reports"]:
+            runs.append(read_junit(Path(run["tool"]["reports"]["junit"])))
         runs += [read_junit(r / "junit.xml") for r in reruns if (r / "junit.xml").is_file()]
         quality = suite_quality(tests, {Path(k): v for k, v in run["collectable"].items()}, runs)
         metrics["suite"] = quality.summary()

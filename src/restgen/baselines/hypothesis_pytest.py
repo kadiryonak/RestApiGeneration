@@ -14,20 +14,19 @@ same file is re-run unchanged against clean services for output coverage and sta
 from __future__ import annotations
 
 import json
-import os
 import re
-from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 from restgen.baselines.base import (
-    ComparisonTool,
+    PytestSuiteTool,
     ToolRunContext,
     ToolRunResult,
     capture,
+    check_pytest_exit,
     run_command,
+    suite_env,
 )
 from restgen.config import HypothesisSettings
-from restgen.errors import ToolError
 from restgen.openapi import OpenApiSpec, Operation
 
 SUITE_FILE = "test_api_hypothesis.py"
@@ -172,7 +171,7 @@ def render_suite(spec: OpenApiSpec, seed: int, max_examples: int) -> str:
     )
 
 
-class HypothesisPytest(ComparisonTool):
+class HypothesisPytest(PytestSuiteTool):
     name = "hypothesis"
 
     def __init__(self, settings: HypothesisSettings, spec: OpenApiSpec) -> None:
@@ -180,15 +179,8 @@ class HypothesisPytest(ComparisonTool):
         self._spec = spec
 
     @property
-    def produces_suite(self) -> bool:
-        return True
-
-    def _python(self) -> str:
-        if not self._settings.python.is_file():
-            raise ToolError(
-                f"Hypothesis tool environment missing at {self._settings.python}; run `make tools`"
-            )
-        return str(self._settings.python)
+    def python(self) -> Path:
+        return self._settings.python
 
     def version(self) -> str:
         return capture(
@@ -212,17 +204,17 @@ class HypothesisPytest(ComparisonTool):
     def run(self, context: ToolRunContext) -> ToolRunResult:
         suite = self.generate(context)
         junit = context.output_dir / "junit.xml"
-        argv = self._pytest_argv([suite], junit)
+        argv = self.pytest_argv([suite], junit)
         exit_code, seconds = run_command(
             argv,
             context.output_dir / "tool.log",
             timeout=context.budget.max_time_seconds + HARD_TIMEOUT_MARGIN_SECONDS,
-            env=self._env(
+            env=suite_env(
                 context.base_url, context.headers, context.budget.request_timeout_seconds
             ),
             cwd=suite.parent,
         )
-        _check_pytest_exit(exit_code, context.output_dir)
+        check_pytest_exit(exit_code, context.output_dir)
         return ToolRunResult(
             tool=self.name,
             version=self.version(),
@@ -232,66 +224,3 @@ class HypothesisPytest(ComparisonTool):
             tests=(suite,),
             reports={"junit": junit},
         )
-
-    def collect(self, tests: Sequence[Path]) -> dict[Path, bool]:
-        result = {}
-        for test in tests:
-            code, _ = run_command(
-                [
-                    self._python(),
-                    "-m",
-                    "pytest",
-                    "--collect-only",
-                    "-q",
-                    "-p",
-                    "no:cacheprovider",
-                    str(test),
-                ],
-                test.parent / f".{test.stem}.collect.log",
-                timeout=120,
-                env=self._env("http://127.0.0.1:9", {}, 1.0),
-                cwd=test.parent,
-            )
-            result[test] = code == 0
-        return result
-
-    def execute_suite(
-        self, tests: Sequence[Path], base_url: str, headers: Mapping[str, str], junit: Path
-    ) -> int:
-        code, _ = run_command(
-            self._pytest_argv(tests, junit),
-            junit.with_suffix(".log"),
-            timeout=3600,
-            env=self._env(base_url, headers, 10.0),
-            cwd=tests[0].parent,
-        )
-        _check_pytest_exit(code, junit.parent)
-        return code
-
-    def _pytest_argv(self, tests: Sequence[Path], junit: Path) -> list[str]:
-        return [
-            self._python(),
-            "-m",
-            "pytest",
-            "-q",
-            "-p",
-            "no:cacheprovider",
-            f"--junitxml={junit}",
-            *(str(t) for t in tests),
-        ]
-
-    @staticmethod
-    def _env(base_url: str, headers: Mapping[str, str], timeout: float) -> dict[str, str]:
-        return {
-            **os.environ,
-            "RESTGEN_BASE_URL": base_url,
-            "RESTGEN_HEADERS": json.dumps(dict(headers)),
-            "RESTGEN_REQUEST_TIMEOUT": str(timeout),
-            "PYTHONDONTWRITEBYTECODE": "1",
-        }
-
-
-def _check_pytest_exit(code: int, where: Path) -> None:
-    # 0 all passed, 1 some tests failed (= findings); anything else is a harness problem.
-    if code not in (0, 1):
-        raise ToolError(f"pytest exited with {code}; see {where}")

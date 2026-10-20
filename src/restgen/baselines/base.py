@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+import os
 import subprocess
 import time
 from abc import ABC, abstractmethod
@@ -107,3 +109,88 @@ def capture(argv: Sequence[str]) -> str:
     if result.returncode != 0:
         raise ToolError(f"{' '.join(argv)} failed: {result.stderr.strip()}")
     return result.stdout.strip()
+
+
+class PytestSuiteTool(ComparisonTool):
+    """A tool whose output is a persistent suite that pytest can run (pytest also runs
+    unittest classes). The suite gets its target through RESTGEN_* environment variables;
+    suites that hard-code the URL instead rely on the runner reusing the proxy port."""
+
+    @property
+    @abstractmethod
+    def python(self) -> Path:
+        """Interpreter of the environment the suite runs in."""
+
+    @property
+    def produces_suite(self) -> bool:
+        return True
+
+    def _python(self) -> str:
+        if not self.python.is_file():
+            raise ToolError(
+                f"{self.name}: test environment missing at {self.python}; run `make tools`"
+            )
+        return str(self.python)
+
+    def collect(self, tests: Sequence[Path]) -> dict[Path, bool]:
+        result = {}
+        for test in tests:
+            code, _ = run_command(
+                [
+                    self._python(),
+                    "-m",
+                    "pytest",
+                    "--collect-only",
+                    "-q",
+                    "-p",
+                    "no:cacheprovider",
+                    str(test),
+                ],
+                test.parent / f".{test.stem}.collect.log",
+                timeout=120,
+                env=suite_env("http://127.0.0.1:9", {}, 1.0),
+                cwd=test.parent,
+            )
+            result[test] = code == 0
+        return result
+
+    def execute_suite(
+        self, tests: Sequence[Path], base_url: str, headers: Mapping[str, str], junit: Path
+    ) -> int:
+        code, _ = run_command(
+            self.pytest_argv(tests, junit),
+            junit.with_suffix(".log"),
+            timeout=3600,
+            env=suite_env(base_url, headers, 10.0),
+            cwd=tests[0].parent,
+        )
+        check_pytest_exit(code, junit.parent)
+        return code
+
+    def pytest_argv(self, tests: Sequence[Path], junit: Path) -> list[str]:
+        return [
+            self._python(),
+            "-m",
+            "pytest",
+            "-q",
+            "-p",
+            "no:cacheprovider",
+            f"--junitxml={junit}",
+            *(str(t) for t in tests),
+        ]
+
+
+def suite_env(base_url: str, headers: Mapping[str, str], timeout: float) -> dict[str, str]:
+    return {
+        **os.environ,
+        "RESTGEN_BASE_URL": base_url,
+        "RESTGEN_HEADERS": json.dumps(dict(headers)),
+        "RESTGEN_REQUEST_TIMEOUT": str(timeout),
+        "PYTHONDONTWRITEBYTECODE": "1",
+    }
+
+
+def check_pytest_exit(code: int, where: Path) -> None:
+    # 0 all passed, 1 some tests failed (= findings); anything else is a harness problem.
+    if code not in (0, 1):
+        raise ToolError(f"pytest exited with {code}; see {where}")

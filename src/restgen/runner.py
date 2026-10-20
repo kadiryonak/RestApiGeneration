@@ -22,12 +22,13 @@ from pathlib import Path
 from typing import Any
 
 from restgen.baselines.base import ComparisonTool, ToolRunContext
+from restgen.baselines.evomaster_cli import EvoMasterCli
 from restgen.baselines.hypothesis_pytest import HypothesisPytest
 from restgen.baselines.schemathesis_cli import SchemathesisCli
 from restgen.benchmark.fetcher import SuiteFetcher
 from restgen.benchmark.models import CoverageKind, Service
 from restgen.benchmark.registry import BenchmarkRegistry
-from restgen.benchmark.service import ServiceEnvironment, ServiceProcess
+from restgen.benchmark.service import ServiceEnvironment, ServiceProcess, free_port
 from restgen.config import Settings
 from restgen.errors import BenchmarkError, RestgenError, ToolError
 from restgen.jsonio import append_jsonl, write_json
@@ -35,7 +36,7 @@ from restgen.openapi import OpenApiSpec
 from restgen.traffic.models import TRAFFIC_FILE
 from restgen.traffic.proxy import RecordingProxy
 
-TOOLS = ("schemathesis", "hypothesis")
+TOOLS = ("schemathesis", "hypothesis", "evomaster")
 RUN_RECORD = "run.json"
 
 
@@ -63,6 +64,8 @@ def make_tool(name: str, settings: Settings, spec: OpenApiSpec) -> ComparisonToo
         return SchemathesisCli(settings.schemathesis)
     if name == "hypothesis":
         return HypothesisPytest(settings.hypothesis, spec)
+    if name == "evomaster":
+        return EvoMasterCli(settings.evomaster)
     raise ToolError(f"unknown tool {name!r}; known: {', '.join(TOOLS)}")
 
 
@@ -92,6 +95,9 @@ class Runner:
         )
 
         exploration = directory / "exploration"
+        # One proxy port for the whole run: suites that hard-code the URL they were
+        # generated against (EvoMaster) then reach the clean services of the reruns too.
+        proxy_port = free_port()
         with self._service(service, environment, status.path, exploration) as process:
             spec, openapi_source = self._load_spec(service, status.path, process.base_url)
             write_json(directory / "openapi.json", dict(spec.document))
@@ -101,6 +107,7 @@ class Runner:
                 exploration / TRAFFIC_FILE,
                 self.settings.proxy,
                 self.settings.budget.request_timeout_seconds,
+                port=proxy_port,
             ) as proxy:
                 openapi_url = (
                     openapi_source if service.openapi_is_file else proxy.url + service.openapi
@@ -130,6 +137,7 @@ class Runner:
                         rerun / TRAFFIC_FILE,
                         self.settings.proxy,
                         self.settings.budget.request_timeout_seconds,
+                        port=proxy_port,
                     ) as proxy,
                 ):
                     code = tool.execute_suite(

@@ -1,12 +1,13 @@
-# Work in progress (updated 2026-10-19)
+# Work in progress (updated 2026-10-20)
 
 ## Done
 - Config, OpenAPI model, recording proxy, coverage readers (coverage.py, JaCoCo)
 - Benchmark manifest with 6 pinned suites; fetch/verify; service runtime (local processes)
 - Metrics: operation coverage, fault funnel + triage, suite quality, retention, mutation
   score, repairs, cost; statistics; measure; comparison report
-- Baselines: Schemathesis CLI (application), Hypothesis pytest suite (library)
-- End-to-end smoke on booking (3 seeds × 2 tools): `results/summary/smoke-booking.md`
+- Baselines: Schemathesis CLI (application), Hypothesis pytest suite (library),
+  EvoMaster 6.2.0 black-box with Python output (search-based)
+- End-to-end smoke on booking (3 seeds × 3 tools): `results/summary/smoke-booking.md`
 - Literature: vault folder renamed into numbered categories + `00 - Okuma Sırası.md`;
   bib/matrix synced (31 papers); `docs/literature/verified-sources.md`
 

@@ -50,3 +50,4 @@ docs/literature/**/*.pdf
 # Third-party tools cloned for study (own git history, not part of restgen)
 /schemathesis/
 /hypothesis/
+.tools/
