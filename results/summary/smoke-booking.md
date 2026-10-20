@@ -15,12 +15,12 @@ Reference group: **schemathesis**. Cells: median [Q1, Q3] (n runs). A12 > 0.5 me
 | output_line_coverage | - | 0.814 [0.814, 0.814] (3) | 0.8372 [0.8372, 0.8372] (3) |
 | line_retention | - | 1 [1, 1] (3) | 1 [1, 1] (3) |
 | pass_rate | - | 0.6667 [0.6667, 0.6667] (3) | 1 [1, 1] (3) |
-| success_coverage_auc | 0.2877 [0.2871, 0.2878] (3) | 0.3281 [0.328, 0.3283] (3)<br>A12=1.00 (large), p=0.2 | 0.3282 [0.3281, 0.3284] (3)<br>A12=1.00 (large), p=0.2 |
-| time_to_first_failure | 1.327 [1.305, 1.361] (3) | 0 [0, 0] (3)<br>A12=0.00 (large), p=0.127 | 0.411 [0.404, 0.4205] (3)<br>A12=0.00 (large), p=0.127 |
-| http_calls | 391 [389.5, 394] (3) | 33 [33, 33] (3)<br>A12=0.00 (large), p=0.127 | 458 [457, 461] (3)<br>A12=1.00 (large), p=0.127 |
+| success_coverage_auc | 0.2842 [0.2841, 0.2844] (3) | 0.3092 [0.3092, 0.3093] (3)<br>A12=1.00 (large), p=0.2 | 0.3033 [0.3012, 0.3048] (3)<br>A12=1.00 (large), p=0.2 |
+| time_to_first_failure | 1.54 [1.527, 1.557] (3) | 1.107 [1.101, 1.112] (3)<br>A12=0.00 (large), p=0.2 | 1.908 [1.802, 2.016] (3)<br>A12=1.00 (large), p=0.2 |
+| http_calls | 387 [387, 388] (3) | 33 [33, 33] (3)<br>A12=0.00 (large), p=0.119 | 456 [455, 461.5] (3)<br>A12=1.00 (large), p=0.119 |
 | llm_calls | 0 [0, 0] (3) | 0 [0, 0] (3)<br>A12=0.50 (negligible), p=1 | 0 [0, 0] (3)<br>A12=0.50 (negligible), p=1 |
 | usd | 0 [0, 0] (3) | 0 [0, 0] (3)<br>A12=0.50 (negligible), p=1 | 0 [0, 0] (3)<br>A12=0.50 (negligible), p=1 |
-| wall_seconds | 20.54 [20.52, 20.63] (3) | 1.418 [1.393, 1.419] (3)<br>A12=0.00 (large), p=0.2 | 22.56 [22.54, 22.75] (3)<br>A12=1.00 (large), p=0.2 |
+| wall_seconds | 20.53 [20.53, 20.55] (3) | 1.519 [1.518, 1.543] (3)<br>A12=0.00 (large), p=0.153 | 23.27 [23.2, 23.28] (3)<br>A12=1.00 (large), p=0.153 |
 
 ## Project-equal mean of per-service medians (artificial, 1 service(s))
 
@@ -35,10 +35,10 @@ Reference group: **schemathesis**. Cells: median [Q1, Q3] (n runs). A12 > 0.5 me
 | output_line_coverage | - | 0.814 | 0.8372 |
 | line_retention | - | 1 | 1 |
 | pass_rate | - | 0.6667 | 1 |
-| success_coverage_auc | 0.2877 | 0.3281 | 0.3282 |
-| time_to_first_failure | 1.327 | 0 | 0.411 |
-| http_calls | 391 | 33 | 458 |
+| success_coverage_auc | 0.2842 | 0.3092 | 0.3033 |
+| time_to_first_failure | 1.54 | 1.107 | 1.908 |
+| http_calls | 387 | 33 | 456 |
 | llm_calls | 0 | 0 | 0 |
 | usd | 0 | 0 | 0 |
-| wall_seconds | 20.54 | 1.418 | 22.56 |
+| wall_seconds | 20.53 | 1.519 | 23.27 |
 

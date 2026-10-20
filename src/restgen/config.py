@@ -76,6 +76,7 @@ class ToolchainSettings:
     jdks: Mapping[str, Path]  # "8" -> JAVA_HOME
     maven: Path  # Maven home
     maven_repo: Path  # local repository, kept inside the project
+    python_dir: Path  # uv-managed interpreters for service venvs (old Pythons), project-local
 
 
 @dataclass(frozen=True)
@@ -234,6 +235,7 @@ def _build(root: Path, raw: Mapping[str, Any]) -> Settings:
             jdks={str(k): root / str(v) for k, v in jdks.items()},
             maven=root / _get(toolchain, "maven", str, "toolchain"),
             maven_repo=root / _get(toolchain, "maven_repo", str, "toolchain"),
+            python_dir=root / _get(toolchain, "python_dir", str, "toolchain"),
         ),
     )
     _validate(settings)

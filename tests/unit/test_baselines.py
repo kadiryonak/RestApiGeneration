@@ -79,6 +79,8 @@ def test_schemathesis_command_follows_benchmarking_guide(tmp_path: Path) -> None
     assert "--max-time 30" in joined
     assert "--seed 42" in joined
     assert "--url http://127.0.0.1:1234" in joined
+    prefixed = ToolRunContext(**{**_context(tmp_path).__dict__, "api_base_path": "/api/v1"})
+    assert "--url http://127.0.0.1:1234/api/v1" in " ".join(tool.command(prefixed))
     assert "--header Authorization: Bearer t" in joined
     assert argv[-1] == "--no-shrink"
     assert not tool.produces_suite

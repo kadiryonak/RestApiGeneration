@@ -39,19 +39,8 @@ class SuiteFetcher:
 
     def fetch(self, suite: Suite) -> SuiteStatus:
         target = self.path(suite)
-        if not (target / ".git").is_dir():
-            target.parent.mkdir(parents=True, exist_ok=True)
-            # Partial clone: full history is reachable, blobs are downloaded on demand.
-            _git(["clone", "--filter=blob:none", "--no-checkout", suite.repository, str(target)])
-        if not self.verify(suite).ok:
-            # A --no-checkout clone already has HEAD at the default branch but an empty
-            # worktree, so check out even when HEAD looks right.
-            if not _git_ok(["cat-file", "-e", f"{suite.commit}^{{commit}}"], cwd=target):
-                _git(["fetch", "--filter=blob:none", "origin", suite.commit], cwd=target)
-            _git(["checkout", "--detach", "--force", suite.commit], cwd=target)
+        checkout(suite.repository, suite.commit, target)
         status = self.verify(suite)
-        if not status.ok:
-            raise BenchmarkError(f"suite {suite.name} is not at the pinned commit after fetching")
         write_json(
             target.parent / f"{suite.name}.{FETCH_RECORD}",
             {
@@ -64,19 +53,33 @@ class SuiteFetcher:
         return status
 
     def verify(self, suite: Suite) -> SuiteStatus:
-        target = self.path(suite)
-        if not (target / ".git").is_dir():
-            return SuiteStatus(suite.name, target, False, None, False, False)
-        head = _git(["rev-parse", "HEAD"], cwd=target, check=False) or None
-        dirty = _git(["status", "--porcelain", "--untracked-files=no"], cwd=target, check=False)
-        return SuiteStatus(
-            suite=suite.name,
-            path=target,
-            present=True,
-            head=head,
-            pinned=head == suite.commit,
-            clean=dirty == "",
-        )
+        return checkout_status(suite.name, suite.commit, self.path(suite))
+
+
+def checkout(repository: str, commit: str, target: Path) -> None:
+    """Make ``target`` a clean checkout of ``repository`` at ``commit``."""
+    if not (target / ".git").is_dir():
+        target.parent.mkdir(parents=True, exist_ok=True)
+        # Partial clone: full history is reachable, blobs are downloaded on demand.
+        _git(["clone", "--filter=blob:none", "--no-checkout", repository, str(target)])
+    if not checkout_status("", commit, target).ok:
+        # A --no-checkout clone already has HEAD at the default branch but an empty
+        # worktree, so check out even when HEAD looks right.
+        if not _git_ok(["cat-file", "-e", f"{commit}^{{commit}}"], cwd=target):
+            _git(["fetch", "--filter=blob:none", "origin", commit], cwd=target)
+        _git(["checkout", "--detach", "--force", commit], cwd=target)
+    if not checkout_status("", commit, target).ok:
+        raise BenchmarkError(f"{target} is not at the pinned commit {commit} after fetching")
+
+
+def checkout_status(name: str, commit: str, target: Path) -> SuiteStatus:
+    if not (target / ".git").is_dir():
+        return SuiteStatus(name, target, False, None, False, False)
+    head = _git(["rev-parse", "HEAD"], cwd=target, check=False) or None
+    dirty = _git(["status", "--porcelain", "--untracked-files=no"], cwd=target, check=False)
+    return SuiteStatus(
+        suite=name, path=target, present=True, head=head, pinned=head == commit, clean=dirty == ""
+    )
 
 
 def _git(args: list[str], cwd: Path | None = None, check: bool = True) -> str:

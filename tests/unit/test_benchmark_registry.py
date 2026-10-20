@@ -159,7 +159,9 @@ def test_jvm_service_runs_jar_with_jacoco_agent(tmp_path: Path) -> None:
     service = _registry(tmp_path, JVM).service("svc")
     assert service.launch.kind is LaunchKind.JVM
     assert service.health_any_status
-    toolchain = ToolchainSettings({"8": tmp_path / "jdk8"}, tmp_path / "mvn", tmp_path / "m2")
+    toolchain = ToolchainSettings(
+        {"8": tmp_path / "jdk8"}, tmp_path / "mvn", tmp_path / "m2", tmp_path
+    )
     suite = tmp_path / "suite"
     environment = ServiceEnvironment(service, tmp_path / "bench", suite, toolchain)
     assert not environment.ready  # jar not built yet
@@ -193,7 +195,7 @@ def test_own_classes_are_extracted_from_a_fat_jar(tmp_path: Path) -> None:
         archive.writestr("BOOT-INF/classes/application.yml", b"config")
         archive.writestr("BOOT-INF/lib/spring.jar", b"library")
         archive.writestr("org/svcx/Other.class", b"not ours")
-    toolchain = ToolchainSettings({"8": tmp_path}, tmp_path, tmp_path)
+    toolchain = ToolchainSettings({"8": tmp_path}, tmp_path, tmp_path, tmp_path)
     environment = ServiceEnvironment(service, tmp_path / "bench", suite, toolchain)
     process = ServiceProcess(service, environment, suite, tmp_path / "log", tmp_path / "cov")
     classes = process._own_classes(jar)

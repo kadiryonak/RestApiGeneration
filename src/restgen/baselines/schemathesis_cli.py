@@ -46,7 +46,7 @@ class SchemathesisCli(ComparisonTool):
             "run",
             context.openapi_url,
             "--url",
-            context.base_url,
+            context.base_url + context.api_base_path,
             "--seed",
             str(context.seed),
             "--max-time",

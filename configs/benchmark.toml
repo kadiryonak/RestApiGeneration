@@ -218,3 +218,35 @@ agent = "jacoco/jacocoagent.jar"
 cli = "jacoco/jacococli.jar"
 classes = ["jdk_8_maven/cs/rest/original/scout-api/api/target/scout-api-sut.jar"]
 include = ["se/devscout"]
+
+# ---------------------------------------------------------------------------------------
+# MAIN BENCHMARK (owner decision 2026-10-21): Python services.
+# WAFP (Schemathesis ICSE 2022): each target's app is cloned at the revision of its WAFP
+# Dockerfile and installed with WAFP's frozen requirements. Deviations from WAFP's Docker
+# setup are recorded per service and in docs/LAB_NOTEBOOK.md. The OpenAPI document is the
+# one the app serves itself (WAFP's "Default" variant, not its hand-linked variant).
+
+[service.age-of-empires-2-api]
+suite = "wafp"
+language = "python"
+framework = "flask"
+category = "real"
+role = "unassigned"
+openapi = "/apispec.json"
+health = "/api/v1"
+notes = "WAFP target age_of_empires_2_api. Deviation: Python 3.9 (WAFP: 3.7, no longer installable with uv), Flask dev server instead of uWSGI+nginx."
+
+[service.age-of-empires-2-api.launch]
+kind = "command"
+source_repository = "https://github.com/aalises/age-of-empires-II-api.git"
+source_commit = "6bd9f29933382838a0e5b7b16f0e318ec6d312a6"
+python = "3.9"
+requirements_files = ["src/wafp/targets/catalog/age_of_empires_2_api/requirements.txt"]
+skip_requirements = ["uWSGI"]  # not used (Flask dev server); does not build on current compilers
+argv = ["{python}", "-m", "flask", "run", "--host", "127.0.0.1", "--port", "{port}"]
+env = { FLASK_APP = "app.py" }
+
+[service.age-of-empires-2-api.coverage]
+kind = "coveragepy"
+include = ["api", "db", "app.py", "config.py"]
+requirement = "coverage==7.10.7"

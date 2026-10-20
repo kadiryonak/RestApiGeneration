@@ -134,7 +134,17 @@ def _service(name: str, data: Mapping[str, Any]) -> Service:
         args=_strs(launch_raw, "args", f"{where}.launch"),
         build_root=_str(launch_raw, "build_root", f"{where}.launch", default=""),
         build_module=_str(launch_raw, "build_module", f"{where}.launch", default=""),
+        source_repository=_str(launch_raw, "source_repository", f"{where}.launch", default=""),
+        source_commit=_str(launch_raw, "source_commit", f"{where}.launch", default=""),
+        python=_str(launch_raw, "python", f"{where}.launch", default=""),
+        requirements_files=_strs(launch_raw, "requirements_files", f"{where}.launch"),
+        skip_requirements=_strs(launch_raw, "skip_requirements", f"{where}.launch"),
+        install_source=_bool(launch_raw, "install_source", f"{where}.launch"),
     )
+    if bool(launch.source_repository) != bool(launch.source_commit):
+        raise ConfigError(f"{where}.launch: source_repository and source_commit go together")
+    if launch.source_commit and not _SHA.fullmatch(launch.source_commit):
+        raise ConfigError(f"{where}.launch.source_commit must be a full 40-character SHA")
     if launch.kind is LaunchKind.COMMAND and not launch.argv:
         raise ConfigError(f"{where}.launch.argv is required for kind 'command'")
     if launch.kind is LaunchKind.COMMAND and "{port}" not in " ".join(launch.argv):
@@ -173,6 +183,7 @@ def _coverage(raw: Mapping[str, Any], where: str) -> CoverageSpec:
         agent=_str(raw, "agent", where, default=""),
         cli=_str(raw, "cli", where, default=""),
         classes=_strs(raw, "classes", where),
+        requirement=_str(raw, "requirement", where, default=""),
     )
     if spec.kind is CoverageKind.JACOCO and not (spec.agent and spec.cli and spec.classes):
         raise ConfigError(f"{where}: kind 'jacoco' needs agent, cli and classes")

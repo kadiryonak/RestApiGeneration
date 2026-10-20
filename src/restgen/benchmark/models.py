@@ -58,6 +58,17 @@ class Launch:
     workdir: str = "."  # relative to the suite checkout
     env: Mapping[str, str] = field(default_factory=dict)
     requirements: tuple[str, ...] = ()  # installed into the service's own venv
+    # COMMAND services whose code is not in the suite (WAFP: the suite only describes
+    # targets): cloned at the pinned commit into the service's environment folder; workdir
+    # is then relative to that checkout.
+    source_repository: str = ""
+    source_commit: str = ""
+    python: str = ""  # interpreter version for the venv; empty = the default (3.12)
+    requirements_files: tuple[str, ...] = ()  # pip -r files, relative to the suite checkout
+    # packages dropped from requirements_files (documented deviations, e.g. a WSGI server
+    # that is replaced by the framework's own server)
+    skip_requirements: tuple[str, ...] = ()
+    install_source: bool = False  # pip install the source checkout itself
     image: str = ""  # CONTAINER
     # JVM: java from toolchain.jdks[jdk]; jar/build paths are relative to the suite
     # checkout; {port} is substituted in jvm_args and args.
@@ -79,6 +90,8 @@ class CoverageSpec:
     agent: str = ""
     cli: str = ""
     classes: tuple[str, ...] = ()
+    # coveragepy: pinned coverage.py for the service venv (old Pythons need old releases)
+    requirement: str = ""
 
 
 @dataclass(frozen=True)

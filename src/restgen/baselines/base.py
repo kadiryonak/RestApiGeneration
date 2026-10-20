@@ -24,6 +24,9 @@ class ToolRunContext:
     seed: int
     budget: BudgetSettings
     output_dir: Path  # the tool's own artefacts (reports, generated tests)
+    # Path prefix of the API from the OpenAPI document ("/api/v1"); tools whose base-URL
+    # option replaces the document's servers (Schemathesis --url) must append it.
+    api_base_path: str = ""
 
 
 @dataclass(frozen=True)

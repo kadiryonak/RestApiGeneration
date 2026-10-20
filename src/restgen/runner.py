@@ -128,6 +128,7 @@ class Runner:
                         seed=request.seed,
                         budget=self.settings.budget,
                         output_dir=directory / "tool",
+                        api_base_path=spec.base_path,
                     )
                 )
         self._export(process, exploration)

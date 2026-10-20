@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import os
+import re
 import signal
 import socket
 import subprocess
@@ -19,6 +20,7 @@ from types import TracebackType
 
 import httpx
 
+from restgen.benchmark.fetcher import checkout
 from restgen.benchmark.models import CoverageKind, LaunchKind, Service
 from restgen.config import ToolchainSettings
 from restgen.coverage.models import CodeCoverage
@@ -64,6 +66,20 @@ class ServiceEnvironment:
         return self.venv / "bin" / "python"
 
     @property
+    def source(self) -> Path:
+        """Checkout of the service's own repository (when it is not in the suite)."""
+        return self.root / "src"
+
+    @property
+    def code_root(self) -> Path:
+        """Directory ``launch.workdir`` is relative to."""
+        if self.service.launch.source_repository:
+            return self.source
+        if self.suite_path is None:
+            raise BenchmarkError(f"service {self.service.name}: suite checkout unknown")
+        return self.suite_path
+
+    @property
     def java(self) -> Path:
         if self.toolchain is None or self.service.launch.jdk not in self.toolchain.jdks:
             raise BenchmarkError(
@@ -101,13 +117,39 @@ class ServiceEnvironment:
             )
 
     def _setup_python(self) -> None:
+        launch = self.service.launch
         self.root.mkdir(parents=True, exist_ok=True)
-        _run(["uv", "venv", "--python", SERVICE_PYTHON, "--allow-existing", str(self.venv)])
-        packages = list(self.service.launch.requirements)
+        if launch.source_repository:
+            checkout(launch.source_repository, launch.source_commit, self.source)
+        python = launch.python or SERVICE_PYTHON
+        uv_env = dict(os.environ)
+        if self.toolchain is not None:
+            uv_env.update(UV_PYTHON_INSTALL_DIR=str(self.toolchain.python_dir),
+                          UV_PYTHON_DOWNLOADS="automatic")
+        _run(["uv", "venv", "--python", python, "--allow-existing", str(self.venv)], env=uv_env)
+        install = ["uv", "pip", "install", "--python", str(self.python)]
+        for index, requirements in enumerate(launch.requirements_files):
+            path = self.suite_file(requirements)
+            if launch.skip_requirements:
+                path = self._filtered(path, self.root / f"requirements-{index}.txt")
+            _run([*install, "-r", str(path)])
+        packages = list(launch.requirements)
         if self.service.coverage.kind is CoverageKind.COVERAGEPY:
-            packages.append(COVERAGE_REQUIREMENT)
+            packages.append(self.service.coverage.requirement or COVERAGE_REQUIREMENT)
         if packages:
-            _run(["uv", "pip", "install", "--python", str(self.python), *packages])
+            _run([*install, *packages])
+        if launch.install_source:
+            _run([*install, str(self.code_root)])
+
+    def _filtered(self, source: Path, target: Path) -> Path:
+        skip = {name.lower().replace("_", "-") for name in self.service.launch.skip_requirements}
+        kept = []
+        for line in source.read_text(encoding="utf-8").splitlines():
+            name = re.split(r"[\s=<>!~;\[]", line.strip(), maxsplit=1)[0]
+            if name.lower().replace("_", "-") not in skip:
+                kept.append(line)
+        target.write_text("\n".join(kept) + "\n", encoding="utf-8")
+        return target
 
     def _setup_jvm(self) -> None:
         if self.jar.is_file():
@@ -161,7 +203,8 @@ class ServiceProcess:
         self.service = service
         self.environment = environment
         self.suite_path = suite_path.resolve()
-        self.workdir = (suite_path / service.launch.workdir).resolve()
+        base = environment.code_root if service.launch.source_repository else suite_path
+        self.workdir = (base / service.launch.workdir).resolve()
         self.log_path = log_path
         self.coverage_data = (
             (coverage_dir / COVERAGE_DATA[service.coverage.kind]).resolve()

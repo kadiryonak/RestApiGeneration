@@ -45,6 +45,9 @@ extra_args = ["--testSuiteSplitType", "NONE"]
 # JVM services (WFD/EMB) are built and run with pinned tools inside .tools/ (`make toolchain`).
 maven = ".tools/maven/apache-maven-3.9.16"
 maven_repo = ".tools/m2"
+# Interpreters for service venvs (e.g. Python 3.9 for WAFP targets) are downloaded by uv
+# into this project folder; the user's global uv settings are not touched.
+python_dir = ".tools/python"
 
 [toolchain.jdks]
 "8" = ".tools/jdk/jdk8u504-b01"  # Temurin 8u504-b01

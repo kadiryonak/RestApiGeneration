@@ -173,3 +173,19 @@ def test_external_refs_are_rejected() -> None:
     spec = OpenApiSpec({"paths": {}})
     with pytest.raises(SpecError, match="local"):
         spec.json_schema({"$ref": "other.yaml#/User"})
+
+
+def test_flasgger_hybrid_document_uses_servers() -> None:
+    # flasgger emits both "swagger": "3.0" and "openapi": "3.0.0", servers and definitions
+    hybrid = {
+        "swagger": "3.0",
+        "openapi": "3.0.0",
+        "servers": [{"url": "/api/v1"}],
+        "definitions": {},
+        "paths": {"/technologies": {"get": {"responses": {"200": {}}}}},
+    }
+    spec = OpenApiSpec(hybrid)
+    assert spec.base_path == "/api/v1"
+    assert spec.version == "3.0.0"
+    matched = spec.match("GET", "/api/v1/technologies").operation
+    assert matched is not None and matched.key == "GET /technologies"

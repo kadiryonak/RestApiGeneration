@@ -104,12 +104,15 @@ class OpenApiSpec:
     @cached_property
     def base_path(self) -> str:
         """Path prefix every operation path is relative to ('' when none)."""
-        if "swagger" in self._doc:
-            base = str(self._doc.get("basePath") or "")
-        else:
-            servers = self._doc.get("servers") or []
-            url = str(servers[0].get("url", "")) if servers else ""
+        # Some generators (flasgger) emit hybrids carrying both "swagger" and "openapi",
+        # servers and definitions: an "openapi" key means OpenAPI 3; servers win, then
+        # basePath.
+        servers = self._doc.get("servers") or [] if "openapi" in self._doc else []
+        if servers:
+            url = str(servers[0].get("url", ""))
             base = urlsplit(url).path if "://" in url else url
+        else:
+            base = str(self._doc.get("basePath") or "")
         base = base.rstrip("/")
         return "" if base in ("", "/") else base
 

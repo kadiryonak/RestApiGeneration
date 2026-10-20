@@ -86,3 +86,33 @@ are committed.
   404, the fault pattern of the EvoMaster paper's Figure 3.
 - **Owner decision:** the main benchmark is Python services; the JVM route stays as an
   optional, unpursued path.
+
+## 2026-10-21 — First Python benchmark service: age-of-empires-II-api (WAFP)
+- Setup: app cloned at WAFP's revision `6bd9f299…`, WAFP's frozen requirements on
+  **Python 3.9.25** (WAFP: 3.7, which uv no longer provides; installed project-locally in
+  `.tools/python`), **uWSGI skipped** (does not compile with current toolchains) and the
+  app served by `flask run` instead of uWSGI + nginx. OpenAPI = the document the app
+  serves (`/apispec.json`), not WAFP's hand-linked variant (it would inform only
+  Schemathesis).
+- **Finding (measurement bug):** flasgger serves a *hybrid* document with both
+  `"swagger": "3.0"` and `"openapi": "3.0.0"`, `servers` and `definitions`. restgen
+  treated it as Swagger 2.0, looked for `basePath`, found none, and matched no request to
+  an operation: every tool showed 0/8 operation success although the traffic had 200s.
+  Fixed: an `openapi` key means OpenAPI 3; `servers` first, then `basePath`.
+- **Finding (tool configuration bug):** Schemathesis' `--url` replaces the document's
+  `servers`, so it called `/technologies` instead of `/api/v1/technologies` (all 404);
+  the Hypothesis suite had the same symptom through the wrong base path. Fixed: the runner
+  passes the API base path to tools whose base-URL option overrides the document.
+- Pilot after the fixes (20 s, seed 42, one run each; `results/runs/pilot/`, not paper
+  data):
+
+  | | Schemathesis | Hypothesis | EvoMaster |
+  |---|---|---|---|
+  | operations succeeded | 8/8 | 4/8 | 8/8 |
+  | line / branch coverage | 0.819 / 0.833 | 0.784 / 0.611 | 0.819 / 0.833 |
+  | unique failures | 0 | 0 | 0 |
+  | HTTP calls | 304 | 124 | 162 |
+  | success-coverage AUC (20 s) | 0.918 | 0.462 | 0.876 |
+
+- Lesson: every new service gets a pilot whose traffic is inspected by hand before its
+  numbers are trusted; a run where all tools score 0 is a measurement suspect first.

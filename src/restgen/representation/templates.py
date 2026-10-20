@@ -98,7 +98,7 @@ def build_templates(spec: OpenApiSpec) -> tuple[OperationTemplate, ...]:
 class _Builder:
     def __init__(self, spec: OpenApiSpec) -> None:
         self.spec = spec
-        self.swagger2 = "swagger" in spec.document
+        self.swagger2 = "openapi" not in spec.document
 
     def operation(
         self, method: str, path: str, item: Mapping[str, Any], operation: Mapping[str, Any]
