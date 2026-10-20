@@ -16,9 +16,12 @@ from restgen.evaluation.faults import TRIAGE_FILE, fault_funnel, write_triage_te
 from restgen.evaluation.operations import SuccessCriterion, operation_coverage
 from restgen.evaluation.retention import CoverageRetention
 from restgen.evaluation.suite import TestResult, read_junit, suite_quality
+from restgen.evaluation.timeline import timeline
 from restgen.jsonio import read_json, write_json
+from restgen.llm.accounting import USAGE_FILE, usage_summary
 from restgen.openapi import OpenApiSpec
 from restgen.runner import load_run
+from restgen.telemetry.trace import TRACE_FILE, read_trace, trace_summary
 from restgen.traffic.models import TRAFFIC_FILE, read_traffic
 
 METRICS_FILE = "metrics.json"
@@ -89,9 +92,31 @@ def measure(directory: Path, source_root: Path | None = None) -> dict[str, Any]:
                     exploration_coverage, output_coverage
                 ).summary()
 
+    success = SuccessCriterion(settings["success_status_min"], settings["success_status_max"])
+    metrics["timeline"] = timeline(
+        spec,
+        traffic,
+        success,
+        settings["server_error_min"],
+        origin=run.get("tool_started_at"),
+        budget_seconds=float(run["settings"]["budget"]["max_time_seconds"]),
+    ).summary()
+
+    # Written by tools that use an LLM / expose their search (the method); absent otherwise.
+    tool_dir = directory / "tool"
+    llm = usage_summary(tool_dir / USAGE_FILE)
+    metrics["llm"] = llm
+    trace_path = tool_dir / TRACE_FILE
+    metrics["search"] = trace_summary(read_trace(trace_path)) if trace_path.is_file() else None
+
     metrics["cost"] = Cost(
         wall_seconds=run["tool"]["wall_seconds"],
         http_calls=len(traffic),
+        llm_calls=llm["llm_calls"] if llm else 0,
+        llm_input_tokens=llm["llm_input_tokens"] if llm else 0,
+        llm_output_tokens=llm["llm_output_tokens"] if llm else 0,
+        # no LLM used: 0 USD is a fact; LLM used with an unpriced model: unknown (None)
+        usd=llm["usd"] if llm else 0.0,
         tests_in_output=tests_in_output,
     ).summary()
     write_json(directory / METRICS_FILE, metrics)

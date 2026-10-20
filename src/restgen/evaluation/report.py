@@ -50,7 +50,11 @@ METRICS = (
     Metric("output_line_coverage", _path("output_coverage", "line_coverage"), True),
     Metric("line_retention", _path("retention", "line_retention"), True),
     Metric("pass_rate", _path("suite", "pass_rate"), None),
+    Metric("success_coverage_auc", _path("timeline", "success_coverage_auc"), True),
+    Metric("time_to_first_failure", _path("timeline", "time_to_first_failure"), False),
     Metric("http_calls", _path("cost", "http_calls"), None),
+    Metric("llm_calls", _path("cost", "llm_calls"), None),
+    Metric("usd", _path("cost", "usd"), None),
     Metric("wall_seconds", _path("cost", "wall_seconds"), None),
 )
 

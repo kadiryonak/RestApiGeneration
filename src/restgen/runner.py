@@ -119,6 +119,7 @@ class Runner:
                 openapi_url = (
                     openapi_source if service.openapi_is_file else proxy.url + service.openapi
                 )
+                tool_started_at = time.time()
                 result = tool.run(
                     ToolRunContext(
                         base_url=proxy.url,
@@ -169,6 +170,7 @@ class Runner:
                 "settings": self.settings.to_dict(),
                 "restgen_commit": _git_state(self.settings.root),
                 "started_at": started,
+                "tool_started_at": tool_started_at,
                 "finished_at": time.time(),
             },
         )

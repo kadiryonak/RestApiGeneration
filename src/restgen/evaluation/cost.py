@@ -13,7 +13,7 @@ class Cost:
     llm_calls: int = 0
     llm_input_tokens: int = 0
     llm_output_tokens: int = 0
-    usd: float = 0.0
+    usd: float | None = 0.0  # None: an LLM was used but its price is unknown
     repair_rounds: int = 0
     tests_in_output: int | None = None  # None: the tool produces no persistent suite
 

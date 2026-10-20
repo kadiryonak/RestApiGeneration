@@ -1,0 +1,13 @@
+# LLM prices in USD per 1M tokens. One [[price]] per (provider, model).
+# Every entry MUST cite the provider's price page and the date it was read; prices are
+# copied from that page, never estimated. A model without an entry gets an unknown cost
+# (reported as null), never 0. Runs freeze the entry they used into llm_usage.jsonl.
+#
+# [[price]]
+# provider = "deepseek"
+# model = "<model id exactly as sent in requests>"
+# input = 0.0          # cache-miss input
+# cached_input = 0.0   # cache-hit input; omit if the provider has no cache discount
+# output = 0.0
+# source = "https://<provider price page>"
+# checked_on = "YYYY-MM-DD"
