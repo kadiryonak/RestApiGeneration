@@ -24,6 +24,9 @@
   `TODO verify`.
 - Before claiming a result, point to the run directory under `results/` that
   produced it.
+- After every experiment, finding, fix that changes numbers, or decision, append a dated
+  entry to `docs/LAB_NOTEBOOK.md` (what was tried, exact settings, real numbers, evidence
+  path, what was learned). It is the raw material for the paper.
 - Experiments follow `docs/EXPERIMENT_PROTOCOL.md` exactly once it is frozen.
   Do not change conditions after seeing results; record any change in the
   protocol's change log and rerun affected runs.

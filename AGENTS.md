@@ -68,6 +68,7 @@ statistics). Undefined values are `None`, never a fake 0 or 1.
 ```
 docs/
   RESEARCH_PLAN.md      thesis phases, open decisions, candidate research questions
+  LAB_NOTEBOOK.md       dated log of everything tried, found and decided (paper material)
   EXPERIMENT_PROTOCOL.md  frozen before the first real run; change log afterwards
   literature/           review protocol, BibTeX, extraction matrix, note template
 configs/                experiment configuration (TOML); experiments/ holds variants
