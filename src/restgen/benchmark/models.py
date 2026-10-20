@@ -29,7 +29,8 @@ class Role(StrEnum):
 
 class LaunchKind(StrEnum):
     COMMAND = "command"  # a local process started from argv
-    CONTAINER = "container"  # Docker/Podman image (RESTgym, WFD); runtime not implemented yet
+    JVM = "jvm"  # a jar run by a pinned JDK (WFD/EMB services), built with Maven on setup
+    CONTAINER = "container"  # Docker/Podman image (RESTgym); runtime not implemented yet
 
 
 class CoverageKind(StrEnum):
@@ -58,6 +59,14 @@ class Launch:
     env: Mapping[str, str] = field(default_factory=dict)
     requirements: tuple[str, ...] = ()  # installed into the service's own venv
     image: str = ""  # CONTAINER
+    # JVM: java from toolchain.jdks[jdk]; jar/build paths are relative to the suite
+    # checkout; {port} is substituted in jvm_args and args.
+    jdk: str = ""
+    jar: str = ""
+    jvm_args: tuple[str, ...] = ()
+    args: tuple[str, ...] = ()
+    build_root: str = ""  # Maven reactor directory, e.g. jdk_8_maven
+    build_module: str = ""  # module (relative to build_root) whose jar is ``jar``
 
 
 @dataclass(frozen=True)
@@ -65,6 +74,11 @@ class CoverageSpec:
     kind: CoverageKind
     # coveragepy: --source entries relative to workdir; jacoco: package prefixes (org/foo)
     include: tuple[str, ...] = ()
+    # jacoco (paths relative to the suite checkout): agent and CLI jars, and the compiled
+    # classes of the service itself (not its libraries) the report is built from
+    agent: str = ""
+    cli: str = ""
+    classes: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -76,11 +90,13 @@ class Service:
     category: Category
     role: Role
     openapi: str  # URL path on the running service ("/openapi.json") or "file:<path in suite>"
-    health: str  # URL path that answers 2xx once the service is ready
+    health: str  # URL path that answers once the service is ready
     launch: Launch
     coverage: CoverageSpec
     headers: Mapping[str, str] = field(default_factory=dict)  # e.g. a fixed auth token
     notes: str = ""
+    # True: any HTTP answer means "up" (APIs without an unauthenticated 2xx endpoint)
+    health_any_status: bool = False
 
     @property
     def openapi_is_file(self) -> bool:

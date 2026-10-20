@@ -1,4 +1,10 @@
-"""Install, start, health-check and stop a service under test, optionally under coverage."""
+"""Install, start, health-check and stop a service under test, optionally under coverage.
+
+* ``command`` services (Python) run in their own venv, under coverage.py;
+* ``jvm`` services (WFD/EMB) are built once with the pinned Maven + JDK and run with the
+  JaCoCo agent, exactly as WFD's own Dockerfiles start them, minus Docker. JaCoCo writes
+  its execution data on JVM shutdown (``dumponexit``), which a normal SIGINT triggers.
+"""
 
 from __future__ import annotations
 
@@ -7,20 +13,23 @@ import signal
 import socket
 import subprocess
 import time
+import zipfile
 from pathlib import Path
 from types import TracebackType
 
 import httpx
 
 from restgen.benchmark.models import CoverageKind, LaunchKind, Service
+from restgen.config import ToolchainSettings
 from restgen.coverage.models import CodeCoverage
-from restgen.coverage.readers import CoveragePyReader
+from restgen.coverage.readers import CoveragePyReader, JacocoXmlReader
 from restgen.errors import BenchmarkError, MeasurementError
 
 SERVICE_PYTHON = "3.12"
 COVERAGE_REQUIREMENT = "coverage==7.16.2"
-STARTUP_TIMEOUT_SECONDS = 60.0
-SHUTDOWN_TIMEOUT_SECONDS = 20.0
+STARTUP_TIMEOUT_SECONDS = 180.0  # Spring Boot services take a while to start
+SHUTDOWN_TIMEOUT_SECONDS = 30.0
+COVERAGE_DATA = {CoverageKind.COVERAGEPY: ".coverage", CoverageKind.JACOCO: "jacoco.exec"}
 
 
 def free_port() -> int:
@@ -31,27 +40,67 @@ def free_port() -> int:
 
 
 class ServiceEnvironment:
-    """The service's own virtualenv: ``<benchmark_dir>/services/<name>/.venv``."""
+    """What a service needs before it can start.
 
-    def __init__(self, service: Service, benchmark_dir: Path) -> None:
+    command: a venv in ``<benchmark_dir>/services/<name>/.venv``;
+    jvm: the service jar inside the suite checkout, built with Maven if missing.
+    """
+
+    def __init__(
+        self,
+        service: Service,
+        benchmark_dir: Path,
+        suite_path: Path | None = None,
+        toolchain: ToolchainSettings | None = None,
+    ) -> None:
         self.service = service
         self.root = benchmark_dir / "services" / service.name
         self.venv = self.root / ".venv"
+        self.suite_path = suite_path
+        self.toolchain = toolchain
 
     @property
     def python(self) -> Path:
         return self.venv / "bin" / "python"
 
     @property
+    def java(self) -> Path:
+        if self.toolchain is None or self.service.launch.jdk not in self.toolchain.jdks:
+            raise BenchmarkError(
+                f"service {self.service.name}: no JDK {self.service.launch.jdk!r} in [toolchain]"
+            )
+        return self.toolchain.jdks[self.service.launch.jdk] / "bin" / "java"
+
+    def suite_file(self, relative: str) -> Path:
+        if self.suite_path is None:
+            raise BenchmarkError(f"service {self.service.name}: suite checkout unknown")
+        return (self.suite_path / relative).resolve()
+
+    @property
+    def jar(self) -> Path:
+        return self.suite_file(self.service.launch.jar)
+
+    @property
     def ready(self) -> bool:
-        return self.python.is_file()
+        kind = self.service.launch.kind
+        if kind is LaunchKind.COMMAND:
+            return self.python.is_file()
+        if kind is LaunchKind.JVM:
+            return self.suite_path is not None and self.jar.is_file()
+        return False
 
     def setup(self) -> None:
-        if self.service.launch.kind is not LaunchKind.COMMAND:
+        kind = self.service.launch.kind
+        if kind is LaunchKind.COMMAND:
+            self._setup_python()
+        elif kind is LaunchKind.JVM:
+            self._setup_jvm()
+        else:
             raise BenchmarkError(
-                f"service {self.service.name}: launch kind "
-                f"{self.service.launch.kind.value!r} is not supported yet"
+                f"service {self.service.name}: launch kind {kind.value!r} is not supported yet"
             )
+
+    def _setup_python(self) -> None:
         self.root.mkdir(parents=True, exist_ok=True)
         _run(["uv", "venv", "--python", SERVICE_PYTHON, "--allow-existing", str(self.venv)])
         packages = list(self.service.launch.requirements)
@@ -60,9 +109,38 @@ class ServiceEnvironment:
         if packages:
             _run(["uv", "pip", "install", "--python", str(self.python), *packages])
 
+    def _setup_jvm(self) -> None:
+        if self.jar.is_file():
+            return
+        launch = self.service.launch
+        if not (launch.build_root and launch.build_module):
+            raise BenchmarkError(f"service {self.service.name}: jar missing and no build given")
+        if self.toolchain is None:
+            raise BenchmarkError("JVM services need the [toolchain] settings")
+        java_home = self.java.parent.parent
+        _run(
+            [
+                str(self.toolchain.maven / "bin" / "mvn"),
+                "-B",
+                "-q",
+                f"-Dmaven.repo.local={self.toolchain.maven_repo}",
+                "-DskipTests",
+                "install",
+                "-am",
+                "-pl",
+                launch.build_module,
+            ],
+            cwd=self.suite_file(launch.build_root),
+            env={**os.environ, "JAVA_HOME": str(java_home),
+                 "PATH": f"{java_home / 'bin'}{os.pathsep}{os.environ.get('PATH', '')}"},
+            timeout=3600,
+        )
+        if not self.jar.is_file():
+            raise BenchmarkError(f"build finished but {self.jar} does not exist")
+
 
 class ServiceProcess:
-    """A running instance. ``coverage_data`` enables coverage.py collection."""
+    """A running instance. ``coverage_dir`` enables coverage collection into that folder."""
 
     def __init__(
         self,
@@ -70,18 +148,26 @@ class ServiceProcess:
         environment: ServiceEnvironment,
         suite_path: Path,
         log_path: Path,
-        coverage_data: Path | None = None,
+        coverage_dir: Path | None = None,
         port: int | None = None,
     ) -> None:
-        if service.launch.kind is not LaunchKind.COMMAND:
-            raise BenchmarkError(f"service {service.name}: only 'command' launch is supported")
-        if coverage_data is not None and service.coverage.kind is not CoverageKind.COVERAGEPY:
-            raise BenchmarkError(f"service {service.name}: no coverage.py collection configured")
+        if service.launch.kind not in (LaunchKind.COMMAND, LaunchKind.JVM):
+            raise BenchmarkError(
+                f"service {service.name}: launch kind {service.launch.kind.value!r} "
+                "is not supported yet"
+            )
+        if coverage_dir is not None and service.coverage.kind is CoverageKind.NONE:
+            raise BenchmarkError(f"service {service.name}: no coverage collection configured")
         self.service = service
         self.environment = environment
+        self.suite_path = suite_path.resolve()
         self.workdir = (suite_path / service.launch.workdir).resolve()
         self.log_path = log_path
-        self.coverage_data = coverage_data.resolve() if coverage_data else None
+        self.coverage_data = (
+            (coverage_dir / COVERAGE_DATA[service.coverage.kind]).resolve()
+            if coverage_dir is not None
+            else None
+        )
         self.port = port or free_port()
         self._process: subprocess.Popen[bytes] | None = None
 
@@ -89,7 +175,12 @@ class ServiceProcess:
     def base_url(self) -> str:
         return f"http://127.0.0.1:{self.port}"
 
+    def _sub(self, arg: str) -> str:
+        return arg.replace("{port}", str(self.port))
+
     def argv(self) -> list[str]:
+        if self.service.launch.kind is LaunchKind.JVM:
+            return self._jvm_argv()
         python = [str(self.environment.python)]
         if self.coverage_data is not None:
             sources = ",".join(self.service.coverage.include) or "."
@@ -106,7 +197,20 @@ class ServiceProcess:
             if arg == "{python}":
                 argv.extend(python)
             else:
-                argv.append(arg.replace("{port}", str(self.port)))
+                argv.append(self._sub(arg))
+        return argv
+
+    def _jvm_argv(self) -> list[str]:
+        launch = self.service.launch
+        argv = [str(self.environment.java)]
+        if self.coverage_data is not None:
+            agent = self.suite_path / self.service.coverage.agent
+            argv.append(
+                f"-javaagent:{agent}=destfile={self.coverage_data},append=false,dumponexit=true"
+            )
+        argv += [self._sub(a) for a in launch.jvm_args]
+        argv += ["-jar", str(self.environment.jar)]
+        argv += [self._sub(a) for a in launch.args]
         return argv
 
     def start(self) -> ServiceProcess:
@@ -118,6 +222,7 @@ class ServiceProcess:
             raise BenchmarkError(f"service working directory missing: {self.workdir}")
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
         if self.coverage_data is not None:
+            self.coverage_data.parent.mkdir(parents=True, exist_ok=True)
             self.coverage_data.unlink(missing_ok=True)
         env = {**os.environ, **self.service.launch.env, "PYTHONUNBUFFERED": "1"}
         with self.log_path.open("ab") as log:
@@ -136,7 +241,7 @@ class ServiceProcess:
         process = self._process
         if process is None or process.poll() is not None:
             return
-        # SIGINT lets the server shut down normally, so coverage.py writes its data file.
+        # SIGINT: a normal shutdown, so coverage.py / JaCoCo write their data.
         os.killpg(process.pid, signal.SIGINT)
         try:
             process.wait(timeout=SHUTDOWN_TIMEOUT_SECONDS)
@@ -155,24 +260,50 @@ class ServiceProcess:
     ) -> None:
         self.stop()
 
-    def export_coverage(self, report: Path) -> CodeCoverage:
-        """After ``stop()``: convert the coverage.py data file to JSON and read it."""
-        if self.coverage_data is None or not self.coverage_data.is_file():
+    def export_coverage(self) -> CodeCoverage:
+        """After ``stop()``: turn the raw coverage data into a report next to it and read it."""
+        data = self.coverage_data
+        if data is None or not data.is_file():
             raise MeasurementError(f"no coverage data was written for {self.service.name}")
-        report.parent.mkdir(parents=True, exist_ok=True)
+        if self.service.coverage.kind is CoverageKind.JACOCO:
+            report = data.parent / "coverage.xml"
+            argv = [str(self.environment.java), "-jar",
+                    str(self.suite_path / self.service.coverage.cli), "report", str(data)]
+            for classes in self.service.coverage.classes:
+                argv += ["--classfiles", str(self._own_classes(self.suite_path / classes))]
+            _run([*argv, "--xml", str(report)])
+            return JacocoXmlReader(self.service.coverage.include).read(report)
+        report = data.parent / "coverage.json"
         _run(
-            [
-                str(self.environment.python),
-                "-m",
-                "coverage",
-                "json",
-                f"--data-file={self.coverage_data}",
-                "-o",
-                str(report.resolve()),
-            ],
+            [str(self.environment.python), "-m", "coverage", "json",
+             f"--data-file={data}", "-o", str(report)],
             cwd=self.workdir,
         )
         return CoveragePyReader(source_root=self.workdir).read(report)
+
+    def _own_classes(self, source: Path) -> Path:
+        """A directory or jar of classes, reduced to the service's own packages.
+
+        A Spring Boot fat jar nests every library jar; JaCoCo refuses to analyse it
+        ("Can't add different class with same name") and the libraries are not part of
+        the measured code anyway. Own classes are extracted once into the service's
+        environment folder (from ``BOOT-INF/classes/`` or the jar root)."""
+        if source.is_dir() or not zipfile.is_zipfile(source):
+            return source
+        target = self.environment.root / "classes" / source.stem
+        if target.is_dir():
+            return target
+        prefixes = tuple(p.strip("/") + "/" for p in self.service.coverage.include)
+        with zipfile.ZipFile(source) as jar:
+            for entry in jar.namelist():
+                name = entry.removeprefix("BOOT-INF/classes/")
+                if name.endswith(".class") and (not prefixes or name.startswith(prefixes)):
+                    destination = target / name
+                    destination.parent.mkdir(parents=True, exist_ok=True)
+                    destination.write_bytes(jar.read(entry))
+        if not target.is_dir():
+            raise MeasurementError(f"no classes of {prefixes} found in {source}")
+        return target
 
     def _wait_until_healthy(self) -> None:
         assert self._process is not None
@@ -185,19 +316,28 @@ class ServiceProcess:
                     f"(code {self._process.returncode}); see {self.log_path}"
                 )
             try:
-                if httpx.get(url, headers=dict(self.service.headers), timeout=2.0).is_success:
+                response = httpx.get(url, headers=dict(self.service.headers), timeout=2.0)
+                if response.is_success or self.service.health_any_status:
                     return
             except httpx.HTTPError:
                 pass
-            time.sleep(0.25)
+            time.sleep(0.5)
         self.stop()
         raise BenchmarkError(f"service {self.service.name} not healthy at {url}")
 
 
-def _run(argv: list[str], cwd: Path | None = None) -> None:
+def _run(
+    argv: list[str],
+    cwd: Path | None = None,
+    env: dict[str, str] | None = None,
+    timeout: float = 1800,
+) -> None:
     try:
-        result = subprocess.run(argv, cwd=cwd, capture_output=True, text=True, timeout=1800)
+        result = subprocess.run(
+            argv, cwd=cwd, env=env, capture_output=True, text=True, timeout=timeout
+        )
     except (OSError, subprocess.TimeoutExpired) as exc:
         raise BenchmarkError(f"{argv[0]} failed: {exc}") from exc
     if result.returncode != 0:
-        raise BenchmarkError(f"{' '.join(argv[:4])} failed: {result.stderr.strip()[-2000:]}")
+        detail = (result.stderr.strip() or result.stdout.strip())[-2000:]
+        raise BenchmarkError(f"{' '.join(argv[:4])} failed: {detail}")

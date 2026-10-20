@@ -92,7 +92,9 @@ class Runner:
         status = self.fetcher.verify(suite)
         if not status.ok:
             raise BenchmarkError(f"suite {suite.name} is not fetched at its pinned commit")
-        environment = ServiceEnvironment(service, self.settings.paths.benchmark_dir)
+        environment = ServiceEnvironment(
+            service, self.settings.paths.benchmark_dir, status.path, self.settings.toolchain
+        )
         started = time.time()
         append_jsonl(
             directory.parent / "invocations.jsonl",
@@ -175,13 +177,13 @@ class Runner:
     def _service(
         self, service: Service, environment: ServiceEnvironment, suite_path: Path, where: Path
     ) -> ServiceProcess:
-        coverage = where / ".coverage" if service.coverage.kind is CoverageKind.COVERAGEPY else None
+        coverage = where if service.coverage.kind is not CoverageKind.NONE else None
         return ServiceProcess(service, environment, suite_path, where / "service.log", coverage)
 
     @staticmethod
     def _export(process: ServiceProcess, where: Path) -> None:
         if process.coverage_data is not None:
-            coverage = process.export_coverage(where / "coverage.json")
+            coverage = process.export_coverage()
             write_json(where / "coverage.normalized.json", coverage.to_record())
 
     @staticmethod

@@ -128,11 +128,22 @@ def _service(name: str, data: Mapping[str, Any]) -> Service:
         env=_str_map(launch_raw, "env", f"{where}.launch"),
         requirements=_strs(launch_raw, "requirements", f"{where}.launch"),
         image=_str(launch_raw, "image", f"{where}.launch", default=""),
+        jdk=_str(launch_raw, "jdk", f"{where}.launch", default=""),
+        jar=_str(launch_raw, "jar", f"{where}.launch", default=""),
+        jvm_args=_strs(launch_raw, "jvm_args", f"{where}.launch"),
+        args=_strs(launch_raw, "args", f"{where}.launch"),
+        build_root=_str(launch_raw, "build_root", f"{where}.launch", default=""),
+        build_module=_str(launch_raw, "build_module", f"{where}.launch", default=""),
     )
     if launch.kind is LaunchKind.COMMAND and not launch.argv:
         raise ConfigError(f"{where}.launch.argv is required for kind 'command'")
     if launch.kind is LaunchKind.COMMAND and "{port}" not in " ".join(launch.argv):
         raise ConfigError(f"{where}.launch.argv must contain the {{port}} placeholder")
+    if launch.kind is LaunchKind.JVM:
+        if not (launch.jdk and launch.jar):
+            raise ConfigError(f"{where}.launch: kind 'jvm' needs jdk and jar")
+        if "{port}" not in " ".join((*launch.jvm_args, *launch.args)):
+            raise ConfigError(f"{where}.launch: jvm_args or args must contain {{port}}")
     if launch.kind is LaunchKind.CONTAINER and not launch.image:
         raise ConfigError(f"{where}.launch.image is required for kind 'container'")
     for path in (_str(data, "openapi", where), _str(data, "health", where)):
@@ -148,10 +159,28 @@ def _service(name: str, data: Mapping[str, Any]) -> Service:
         openapi=_str(data, "openapi", where),
         health=_str(data, "health", where),
         launch=launch,
-        coverage=CoverageSpec(
-            kind=_enum(CoverageKind, coverage_raw, "kind", f"{where}.coverage"),
-            include=_strs(coverage_raw, "include", f"{where}.coverage"),
-        ),
+        coverage=_coverage(coverage_raw, f"{where}.coverage"),
         headers=_str_map(data, "headers", where),
         notes=_str(data, "notes", where, default=""),
+        health_any_status=_bool(data, "health_any_status", where),
     )
+
+
+def _coverage(raw: Mapping[str, Any], where: str) -> CoverageSpec:
+    spec = CoverageSpec(
+        kind=_enum(CoverageKind, raw, "kind", where),
+        include=_strs(raw, "include", where),
+        agent=_str(raw, "agent", where, default=""),
+        cli=_str(raw, "cli", where, default=""),
+        classes=_strs(raw, "classes", where),
+    )
+    if spec.kind is CoverageKind.JACOCO and not (spec.agent and spec.cli and spec.classes):
+        raise ConfigError(f"{where}: kind 'jacoco' needs agent, cli and classes")
+    return spec
+
+
+def _bool(data: Mapping[str, Any], key: str, where: str) -> bool:
+    value = data.get(key, False)
+    if not isinstance(value, bool):
+        raise ConfigError(f"{where}.{key} must be true or false")
+    return value

@@ -16,6 +16,9 @@ from restgen.errors import RestgenError
 from restgen.evaluation.measure import measure
 from restgen.evaluation.report import build_report, collect
 from restgen.jsonio import write_json
+from restgen.openapi import OpenApiSpec
+from restgen.representation.resources import summarize
+from restgen.representation.templates import build_templates
 from restgen.runner import TOOLS, Runner, RunRequest, load_run
 
 
@@ -38,6 +41,16 @@ def build_parser() -> argparse.ArgumentParser:
     actions.add_parser("verify", help="check that fetched suites are pinned and unchanged")
     setup = actions.add_parser("setup", help="create service virtualenvs")
     setup.add_argument("-s", "--service", action="append", default=[])
+
+    spec = commands.add_parser("spec", help="OpenAPI documents")
+    spec_actions = spec.add_subparsers(dest="action", required=True)
+    inspect = spec_actions.add_parser(
+        "inspect", help="input positions and resource dependencies of an API"
+    )
+    target = inspect.add_mutually_exclusive_group(required=True)
+    target.add_argument("-s", "--service", help="a service whose OpenAPI is a file in its suite")
+    target.add_argument("-f", "--file", type=Path, help="any OpenAPI/Swagger document")
+    inspect.add_argument("--templates", action="store_true", help="print every operation")
 
     run = commands.add_parser("run", help="run tools on services (then measure)")
     run.add_argument("--run-id", required=True)
@@ -74,6 +87,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _measure(settings, args.run_dirs)
         if args.command == "report":
             return _report(settings, args)
+        if args.command == "spec":
+            return _spec(settings, args)
         return _benchmark(settings, args)
     except RestgenError as exc:
         print(f"error: {exc}", file=sys.stderr)
@@ -120,11 +135,15 @@ def _benchmark(settings: Settings, args: argparse.Namespace) -> int:
     names = args.service or list(registry.services)
     for name in names:
         service = registry.service(name)
-        if not fetcher.verify(registry.suite(service.suite)).ok:
-            fetcher.fetch(registry.suite(service.suite))
-        environment = ServiceEnvironment(service, settings.paths.benchmark_dir)
+        suite = registry.suite(service.suite)
+        if not fetcher.verify(suite).ok:
+            fetcher.fetch(suite)
+        environment = ServiceEnvironment(
+            service, settings.paths.benchmark_dir, fetcher.path(suite), settings.toolchain
+        )
         environment.setup()
-        print(f"{name}: {environment.python}")
+        target = environment.jar if service.launch.jar else environment.python
+        print(f"{name}: {target}")
     return 0
 
 
@@ -177,4 +196,32 @@ def _report(settings: Settings, args: argparse.Namespace) -> int:
     (summary / f"{args.name}.md").write_text(markdown + "\n", encoding="utf-8")
     write_json(summary / f"{args.name}.json", payload)
     print(summary / f"{args.name}.md")
+    return 0
+
+
+def _spec(settings: Settings, args: argparse.Namespace) -> int:
+    if args.file is not None:
+        document = OpenApiSpec.load(args.file)
+    else:
+        registry = BenchmarkRegistry.load(settings.paths.benchmark_manifest)
+        service = registry.service(args.service)
+        if not service.openapi_is_file:
+            raise RestgenError(f"{service.name}: its OpenAPI is served at run time; use --file")
+        suite = SuiteFetcher(settings.paths.benchmark_dir).path(registry.suite(service.suite))
+        document = OpenApiSpec.load(suite / service.openapi.removeprefix("file:"))
+    templates = build_templates(document)
+    output: dict[str, object] = {"openapi": document.version, **summarize(templates)}
+    if args.templates:
+        output["templates"] = [
+            {
+                "operation": t.key,
+                "media_type": t.media_type,
+                "inputs": [
+                    {"position": i.key, "required": i.required, **i.spec.describe()}
+                    for i in t.inputs
+                ],
+            }
+            for t in templates
+        ]
+    print(json.dumps(output, indent=2, ensure_ascii=False))
     return 0

@@ -70,6 +70,15 @@ class EvoMasterSettings:
 
 
 @dataclass(frozen=True)
+class ToolchainSettings:
+    """Pinned build/run tools for JVM services (installed by `make toolchain`)."""
+
+    jdks: Mapping[str, Path]  # "8" -> JAVA_HOME
+    maven: Path  # Maven home
+    maven_repo: Path  # local repository, kept inside the project
+
+
+@dataclass(frozen=True)
 class Settings:
     root: Path
     paths: PathSettings
@@ -80,6 +89,7 @@ class Settings:
     schemathesis: SchemathesisSettings
     hypothesis: HypothesisSettings
     evomaster: EvoMasterSettings
+    toolchain: ToolchainSettings
 
     def to_dict(self) -> dict[str, Any]:
         def convert(value: Any) -> Any:
@@ -175,6 +185,10 @@ def _build(root: Path, raw: Mapping[str, Any]) -> Settings:
     schemathesis = _section(raw, "tools", "schemathesis")
     hypothesis = _section(raw, "tools", "hypothesis")
     evomaster = _section(raw, "tools", "evomaster")
+    toolchain = _section(raw, "toolchain")
+    jdks = _section(raw, "toolchain", "jdks")
+    if not all(isinstance(v, str) for v in jdks.values()):
+        raise ConfigError("toolchain.jdks values must be paths")
 
     seeds = _get(repetitions, "seeds", list, "repetitions")
     if not seeds or not all(isinstance(s, int) and not isinstance(s, bool) for s in seeds):
@@ -215,6 +229,11 @@ def _build(root: Path, raw: Mapping[str, Any]) -> Settings:
             java=_get(evomaster, "java", str, "tools.evomaster"),
             python=root / _get(evomaster, "python", str, "tools.evomaster"),
             extra_args=_str_tuple(evomaster, "extra_args", "tools.evomaster"),
+        ),
+        toolchain=ToolchainSettings(
+            jdks={str(k): root / str(v) for k, v in jdks.items()},
+            maven=root / _get(toolchain, "maven", str, "toolchain"),
+            maven_repo=root / _get(toolchain, "maven_repo", str, "toolchain"),
         ),
     )
     _validate(settings)

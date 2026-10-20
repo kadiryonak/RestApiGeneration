@@ -75,3 +75,146 @@ requirements = ["fastapi==0.143.0", "uvicorn==0.54.0"]  # versions the example r
 [service.booking.coverage]
 kind = "coveragepy"
 include = ["."]
+
+# ---------------------------------------------------------------------------------------
+# OPTIONAL JVM ROUTE (not the main benchmark: owner decision 2026-10-21, Python first).
+# WFD/EMB v4.3.0: the five services of the EvoMaster study (Arcuri, TOSEM 2019, Table 1).
+# Launch arguments are those of WFD's own dockerfiles/<service>.dockerfile, run on the JVM
+# directly (no Docker). Coverage = the service's own packages inside its SUT jar
+# (JaCoCo 0.8.12 shipped with WFD); third-party libraries are excluded.
+# Auth headers: the public test users of WFD's auth/<service>-auth.yaml (one role, the
+# same for every tool).
+
+[service.features-service]
+suite = "wfd"
+language = "java"
+framework = "spring-boot"
+category = "real"
+role = "unassigned"
+openapi = "file:openapi-swagger/features-service.json"
+health = "/"
+health_any_status = true
+
+[service.features-service.launch]
+kind = "jvm"
+jdk = "8"
+jar = "jdk_8_maven/cs/rest/original/features-service/target/features-service-sut.jar"
+jvm_args = ["-Dspring.datasource.url=jdbc:h2:mem:testdb", "-Dspring.jpa.database-platform=org.hibernate.dialect.H2Dialect", "-Dspring.datasource.username=sa", "-Dspring.datasource.password"]
+args = ["--server.port={port}"]
+build_root = "jdk_8_maven"
+build_module = "cs/rest/original/features-service"
+
+[service.features-service.coverage]
+kind = "jacoco"
+agent = "jacoco/jacocoagent.jar"
+cli = "jacoco/jacococli.jar"
+classes = ["jdk_8_maven/cs/rest/original/features-service/target/features-service-sut.jar"]
+include = ["org/javiermf/features"]
+
+[service.catwatch]
+suite = "wfd"
+language = "java"
+framework = "spring-boot"
+category = "real"
+role = "unassigned"
+openapi = "file:openapi-swagger/catwatch.json"
+health = "/"
+health_any_status = true
+
+[service.catwatch.launch]
+kind = "jvm"
+jdk = "8"
+jar = "jdk_8_maven/cs/rest/original/catwatch/catwatch-backend/target/catwatch-sut.jar"
+jvm_args = ["-Dserver.port={port}", "-Dspring.datasource.url=jdbc:h2:mem:testdb", "-Dspring.jpa.database-platform=org.hibernate.dialect.H2Dialect", "-Dspring.datasource.username=sa", "-Dspring.datasource.password"]
+build_root = "jdk_8_maven"
+build_module = "cs/rest/original/catwatch/catwatch-backend"
+
+[service.catwatch.coverage]
+kind = "jacoco"
+agent = "jacoco/jacocoagent.jar"
+cli = "jacoco/jacococli.jar"
+classes = ["jdk_8_maven/cs/rest/original/catwatch/catwatch-backend/target/catwatch-sut.jar"]
+include = ["org/zalando/catwatch"]
+
+[service.proxyprint]
+suite = "wfd"
+language = "java"
+framework = "spring-boot"
+category = "real"
+role = "unassigned"
+openapi = "file:openapi-swagger/proxyprint.json"
+health = "/"
+health_any_status = true
+headers = { Authorization = "Basic bWFzdGVyOjEyMzQ=" }  # WFD auth: "admin" (master:1234)
+notes = "Fails at startup outside Docker: DocumentsConfig needs a writable documents path (not fixed)."
+
+[service.proxyprint.launch]
+kind = "jvm"
+jdk = "8"
+jar = "jdk_8_maven/cs/rest/original/proxyprint/target/proxyprint-sut.jar"
+jvm_args = ["-Dspring.datasource.url=jdbc:h2:mem:testdb", "-Dspring.jpa.database-platform=org.hibernate.dialect.H2Dialect", "-Dspring.datasource.username=sa", "-Dspring.datasource.password", "-Dspring.jpa.show-sql=false", "-Dspring.jpa.hibernate.ddl-auto=create-drop", "-Xmx4G"]
+args = ["--server.port={port}"]
+build_root = "jdk_8_maven"
+build_module = "cs/rest/original/proxyprint"
+
+[service.proxyprint.coverage]
+kind = "jacoco"
+agent = "jacoco/jacocoagent.jar"
+cli = "jacoco/jacococli.jar"
+classes = ["jdk_8_maven/cs/rest/original/proxyprint/target/proxyprint-sut.jar"]
+include = ["io/github/proxyprint"]
+
+[service.rest-news]
+suite = "wfd"
+language = "kotlin"
+framework = "spring-boot"
+category = "artificial"
+role = "unassigned"
+openapi = "file:openapi-swagger/rest-news.json"
+health = "/"
+health_any_status = true
+notes = "Teaching example (WFD lists it under artificial/)."
+
+[service.rest-news.launch]
+kind = "jvm"
+jdk = "8"
+jar = "jdk_8_maven/cs/rest/artificial/news/target/rest-news-sut.jar"
+args = ["--server.port={port}"]
+build_root = "jdk_8_maven"
+build_module = "cs/rest/artificial/news"
+
+[service.rest-news.coverage]
+kind = "jacoco"
+agent = "jacoco/jacocoagent.jar"
+cli = "jacoco/jacococli.jar"
+classes = ["jdk_8_maven/cs/rest/artificial/news/target/rest-news-sut.jar"]
+include = ["org/tsdes"]
+
+[service.scout-api]
+suite = "wfd"
+language = "java"
+framework = "dropwizard"
+category = "real"
+role = "unassigned"
+openapi = "file:openapi-swagger/scout-api.json"
+health = "/api"
+health_any_status = true
+headers = { Authorization = "ApiKey administrator" }  # WFD auth: "administrator"
+
+[service.scout-api.launch]
+kind = "jvm"
+jdk = "8"
+# runs next to its config (scout_api_evomaster.yml) and init_db.sql, as in WFD's dockerfile
+workdir = "scripts/dockerize/data/additional_files/scout-api"
+jar = "jdk_8_maven/cs/rest/original/scout-api/api/target/scout-api-sut.jar"
+jvm_args = ["-Ddw.server.connector.port={port}"]
+args = ["server", "scout_api_evomaster.yml"]
+build_root = "jdk_8_maven"
+build_module = "cs/rest/original/scout-api/api"
+
+[service.scout-api.coverage]
+kind = "jacoco"
+agent = "jacoco/jacocoagent.jar"
+cli = "jacoco/jacococli.jar"
+classes = ["jdk_8_maven/cs/rest/original/scout-api/api/target/scout-api-sut.jar"]
+include = ["se/devscout"]

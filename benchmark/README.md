@@ -12,8 +12,8 @@ restgen benchmark setup -s booking   # service venv -> projects/services/<servic
 | Suite | Kind | Runnable here now |
 |---|---|---|
 | restgym | 11 JVM services (Docker, JaCoCo, mitmproxy) | not yet: container launch is not implemented |
-| wfd | JVM REST/GraphQL/RPC SUTs (docker-compose) | not yet: container launch |
-| wafp | Python/JS/Go/Rust targets (docker-compose) | not yet: container launch; 2023 deps unchecked |
+| wfd | JVM REST/GraphQL/RPC SUTs | optional JVM route: 4 of the 5 EvoMaster-study services run (`make toolchain`); not the main benchmark |
+| wafp | Python/JS/Go/Rust targets (docker-compose) | next: Python targets as local services (main benchmark) |
 | restestbench | 3 services + NL requirements + mutants | not yet: container launch + mutation runner |
 | prab | OpenAPI documents only | specs only by design (never server coverage) |
 | schemathesis-examples | `booking` FastAPI toy API | yes (development, artificial) |

@@ -35,8 +35,9 @@ def runner(tmp_path_factory: pytest.TempPathFactory) -> Runner:
     )
     registry = BenchmarkRegistry.load(settings.paths.benchmark_manifest)
     service = registry.service("booking")
-    suite_ok = SuiteFetcher(settings.paths.benchmark_dir).verify(registry.suite(service.suite)).ok
-    if not (suite_ok and ServiceEnvironment(service, settings.paths.benchmark_dir).ready):
+    status = SuiteFetcher(settings.paths.benchmark_dir).verify(registry.suite(service.suite))
+    environment = ServiceEnvironment(service, settings.paths.benchmark_dir, status.path)
+    if not (status.ok and environment.ready):
         pytest.skip("booking not set up (restgen benchmark setup -s booking)")
     tools_ready = (
         settings.schemathesis.executable.is_file()

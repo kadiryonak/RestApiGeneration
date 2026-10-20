@@ -40,6 +40,15 @@ API (DeepSeek/OpenAI/Claude) vs. local (Ollama). Driven by budget and by the
 model-independence question; decide in phase 2.
 
 ### D3 — benchmark
+
+**Owner decision (2026-10-21): the main benchmark is Python services.** The JVM route
+(WFD/EMB jars built with a pinned JDK 8 + Maven, JaCoCo coverage) is implemented and was
+checked on the five EvoMaster-study services (features-service, catwatch, rest-news,
+scout-api start and are measured; proxyprint fails at startup: it needs a writable
+documents directory). It stays available but is not pursued further. Python candidates
+with a paper behind them: the Python targets of WAFP (Schemathesis, ICSE 2022) and the
+FastAPI service of RESTestBench (EASE 2026).
+
 Candidates are pinned in `configs/benchmark.toml` (RESTgym, WFD/EMB, WAFP, RESTestBench,
 PRAB). Proposed composition (owner's analysis §6.3): 8–11 RESTgym/WFD services as the
 comparable main group, 4–6 WAFP services for technology diversity, the three RESTestBench

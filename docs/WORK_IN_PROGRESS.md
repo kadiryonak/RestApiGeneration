@@ -1,4 +1,4 @@
-# Work in progress (updated 2026-10-20)
+# Work in progress (updated 2026-10-21)
 
 ## Done
 - Config, OpenAPI model, recording proxy, coverage readers (coverage.py, JaCoCo)
@@ -11,10 +11,17 @@
 - Literature: vault folder renamed into numbered categories + `00 - Okuma Sırası.md`;
   bib/matrix synced (31 papers); `docs/literature/verified-sources.md`
 
+- Representation layer (`src/restgen/representation/`): method-neutral input positions
+  (no genes/food sources), operation templates, URI-based resource dependencies;
+  `restgen spec inspect`
+- JVM service support (optional route): `launch.kind = "jvm"`, JaCoCo, `make toolchain`;
+  five WFD services in the manifest (4 verified running, proxyprint fails at startup)
+
 ## Next
-1. Container launch (Podman) for RESTgym services: JaCoCo agent + XML export; register
-   the 11 APIs with their OpenAPI files and health checks
-2. Same for WFD / WAFP services chosen for the main group
+1. Python benchmark (owner decision 2026-10-21): select WAFP Python targets
+   (Flask/Django/Tornado) and the RESTestBench FastAPI service; register them as
+   `command` services under coverage.py
+2. (Java is not pursued; JVM support stays as is)
 3. RESTestBench: requirement-based mutation runner feeding `evaluation/mutation.py`
 4. Settle the open protocol questions (budget parity, repetitions, roles) and freeze
    `docs/EXPERIMENT_PROTOCOL.md`
