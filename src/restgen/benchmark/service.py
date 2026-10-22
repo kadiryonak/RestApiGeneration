@@ -127,8 +127,10 @@ class ServiceEnvironment:
         python = launch.python or SERVICE_PYTHON
         uv_env = dict(os.environ)
         if self.toolchain is not None:
-            uv_env.update(UV_PYTHON_INSTALL_DIR=str(self.toolchain.python_dir),
-                          UV_PYTHON_DOWNLOADS="automatic")
+            uv_env.update(
+                UV_PYTHON_INSTALL_DIR=str(self.toolchain.python_dir),
+                UV_PYTHON_DOWNLOADS="automatic",
+            )
         _run(["uv", "venv", "--python", python, "--allow-existing", str(self.venv)], env=uv_env)
         install = ["uv", "pip", "install", "--python", str(self.python)]
         for index, requirements in enumerate(launch.requirements_files):
@@ -176,8 +178,11 @@ class ServiceEnvironment:
                 launch.build_module,
             ],
             cwd=self.suite_file(launch.build_root),
-            env={**os.environ, "JAVA_HOME": str(java_home),
-                 "PATH": f"{java_home / 'bin'}{os.pathsep}{os.environ.get('PATH', '')}"},
+            env={
+                **os.environ,
+                "JAVA_HOME": str(java_home),
+                "PATH": f"{java_home / 'bin'}{os.pathsep}{os.environ.get('PATH', '')}",
+            },
             timeout=3600,
         )
         if not self.jar.is_file():
@@ -290,7 +295,9 @@ class ServiceProcess:
         if not paths:
             return
         if not self.service.launch.source_repository:
-            raise BenchmarkError(f"service {self.service.name}: reset_paths needs a source checkout")
+            raise BenchmarkError(
+                f"service {self.service.name}: reset_paths needs a source checkout"
+            )
         _run(["git", "checkout", "--", *paths], cwd=self.environment.source)
 
     def stop(self) -> None:
@@ -323,16 +330,28 @@ class ServiceProcess:
             raise MeasurementError(f"no coverage data was written for {self.service.name}")
         if self.service.coverage.kind is CoverageKind.JACOCO:
             report = data.parent / "coverage.xml"
-            argv = [str(self.environment.java), "-jar",
-                    str(self.suite_path / self.service.coverage.cli), "report", str(data)]
+            argv = [
+                str(self.environment.java),
+                "-jar",
+                str(self.suite_path / self.service.coverage.cli),
+                "report",
+                str(data),
+            ]
             for classes in self.service.coverage.classes:
                 argv += ["--classfiles", str(self._own_classes(self.suite_path / classes))]
             _run([*argv, "--xml", str(report)])
             return JacocoXmlReader(self.service.coverage.include).read(report)
         report = data.parent / "coverage.json"
         _run(
-            [str(self.environment.python), "-m", "coverage", "json",
-             f"--data-file={data}", "-o", str(report)],
+            [
+                str(self.environment.python),
+                "-m",
+                "coverage",
+                "json",
+                f"--data-file={data}",
+                "-o",
+                str(report),
+            ],
             cwd=self.workdir,
         )
         return CoveragePyReader(source_root=self.workdir).read(report)

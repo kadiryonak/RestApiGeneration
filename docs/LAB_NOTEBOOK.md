@@ -116,3 +116,21 @@ are committed.
 
 - Lesson: every new service gets a pilot whose traffic is inspected by hand before its
   numbers are trusted; a run where all tools score 0 is a measurement suspect first.
+
+## 2026-10-22 — Hypothesis learning examples; lint scope bug
+- `example/hypothesis/`: six runnable examples (properties, strategies, shrinking,
+  stateful machines, `target()`, a real HTTP API from its OpenAPI document). All planted
+  bugs are found and shrunk: `[0, 0]`; `price(31, "suite")`; a 4-step create/create/
+  delete/create sequence; `days=0`; `room_type=""` (the same minimal input Schemathesis
+  found on 2026-10-09).
+- **Targeting illustration** (`example/hypothesis/compare_targeting.py`, not paper data):
+  a bug confined to `4990 <= nights*guests <= 5000`, 300 inputs, 20 seeds: found in
+  3/20 seeds without `target()`, 14/20 with it. A score-guided search clearly beats blind
+  generation on narrow regions; this is the role ABC is meant to play, with a stronger
+  search than Hypothesis's hill climbing.
+- **Finding (repository hygiene):** ruff's `extend-exclude = ["benchmark", "hypothesis", ...]`
+  matched those names at any depth, so `src/restgen/benchmark/` had never been linted
+  (mypy did check it) and `example/hypothesis/` was skipped. Patterns are now anchored
+  (`./benchmark`, ...); the newly linted code needed one line-length fix.
+- The pilot run of 2026-10-21 (booking + restler-demo, 3 tools × 3 seeds) was interrupted
+  by the end of the session; to be rerun.

@@ -1,0 +1,7 @@
+# Same versions as the restgen baseline environment (Makefile `tools`).
+hypothesis==6.168.5
+hypothesis-jsonschema==0.23.1
+pytest==9.1.1
+httpx==0.28.1
+fastapi==0.143.0
+uvicorn==0.54.0
