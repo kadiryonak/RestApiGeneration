@@ -11,7 +11,7 @@
 - Literature: vault folder renamed into numbered categories + `00 - Okuma Sırası.md`;
   bib/matrix synced (31 papers); `docs/literature/verified-sources.md`
 
-- Representation layer (`src/restgen/representation/`): method-neutral input positions
+- Representation layer (`src/restgen/core/representation/`): method-neutral input positions
   (no genes/food sources), operation templates, URI-based resource dependencies;
   `restgen spec inspect`
 - JVM service support (optional route): `launch.kind = "jvm"`, JaCoCo, `make toolchain`;

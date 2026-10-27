@@ -29,11 +29,11 @@ from dataclasses import dataclass
 from typing import Any
 from urllib.parse import parse_qsl, unquote, urlsplit
 
+from restgen.core.representation.inputs import BooleanInput, EnumInput, InputSpec
+from restgen.core.representation.resources import segments
+from restgen.core.representation.templates import Location, OperationTemplate, build_templates
 from restgen.coverage.models import ratio
 from restgen.openapi import HTTP_METHODS, OpenApiSpec
-from restgen.representation.inputs import BooleanInput, EnumInput, InputSpec
-from restgen.representation.resources import segments
-from restgen.representation.templates import Location, OperationTemplate, build_templates
 from restgen.traffic.models import HttpInteraction
 
 # Test Coverage Levels: criteria that must all be at 100 % (cumulatively) for each level.

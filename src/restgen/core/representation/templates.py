@@ -3,19 +3,17 @@
 Fixed (decided by the document, never searched): HTTP method, path template, base path,
 request media type. Variable: one :class:`InputPosition` per path / query / header /
 cookie parameter and the request body, each with its :mod:`input specification
-<restgen.representation.inputs>`.
+<restgen.core.representation.inputs>`.
 """
 
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import StrEnum
 from typing import Any
 
-from restgen.errors import SpecError
-from restgen.openapi import HTTP_METHODS, OpenApiSpec
-from restgen.representation.inputs import (
+from restgen.core.representation.inputs import (
     AnyInput,
     ArrayInput,
     BooleanInput,
@@ -29,6 +27,8 @@ from restgen.representation.inputs import (
     RecursiveInput,
     StringInput,
 )
+from restgen.errors import SpecError
+from restgen.openapi import HTTP_METHODS, OpenApiSpec
 
 JSON_MEDIA = "application/json"
 FORM_MEDIA = ("application/x-www-form-urlencoded", "multipart/form-data")
@@ -215,8 +215,13 @@ class _Builder:
             return self._all_of(node, stack, nullable)
         for key, exclusive in (("oneOf", True), ("anyOf", False)):
             if isinstance(node.get(key), list):
+                # `anyOf: [X, {type: null}]` (FastAPI's `X | None`) is a nullable X
+                options = [o for o in node[key] if not _is_null_schema(o)]
+                nullable = nullable or len(options) < len(node[key])
+                if len(options) == 1:
+                    return _with_nullable(self.schema(options[0], stack), nullable)
                 return ChoiceInput(
-                    options=tuple(self.schema(o, stack) for o in node[key]),
+                    options=tuple(self.schema(o, stack) for o in options),
                     exclusive=exclusive,
                     nullable=nullable,
                 )
@@ -293,6 +298,14 @@ class _Builder:
                 merged[prop.name] = prop
         name = next((p.schema_name for p in objects if p.schema_name), None)
         return ObjectInput(properties=tuple(merged.values()), schema_name=name, nullable=nullable)
+
+
+def _is_null_schema(node: Any) -> bool:
+    return isinstance(node, Mapping) and node.get("type") == "null"
+
+
+def _with_nullable(spec: InputSpec, nullable: bool) -> InputSpec:
+    return replace(spec, nullable=True) if nullable and not spec.nullable else spec
 
 
 def _pick_media(media_types: list[str]) -> str | None:

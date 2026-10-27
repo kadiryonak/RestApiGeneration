@@ -1,7 +1,6 @@
 from typing import Any
 
-from restgen.openapi import OpenApiSpec
-from restgen.representation.inputs import (
+from restgen.core.representation.inputs import (
     AnyInput,
     ArrayInput,
     BooleanInput,
@@ -12,8 +11,9 @@ from restgen.representation.inputs import (
     RecursiveInput,
     StringInput,
 )
-from restgen.representation.resources import resource_dependencies, summarize
-from restgen.representation.templates import Location, build_templates
+from restgen.core.representation.resources import resource_dependencies, summarize
+from restgen.core.representation.templates import Location, build_templates
+from restgen.openapi import OpenApiSpec
 
 SWAGGER2: dict[str, Any] = {
     "swagger": "2.0",

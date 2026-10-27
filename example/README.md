@@ -25,3 +25,15 @@ cd example/hypothesis
 `compare_targeting.py` repeats the bug hunt of `test_05` over 20 seeds with the same budget
 (300 inputs): without `target()` the bug was found in **3/20** seeds, with it in
 **14/20** (2026-10-22). Guided search matters; that is the motivation for ABC.
+
+## Representation (`example/representation/`)
+
+From the Shop API's OpenAPI document to operation templates to a hand-built test case of
+three actions (create an `ADMIN` user, read it back by the returned id, order two
+laptops for it). Uses restgen itself, so it runs in the repository's `.venv`:
+
+```bash
+.venv/bin/python example/representation/demo_testcase.py              # print only
+# with the Shop API running (see benchmark/examples/shop_api/README.md):
+.venv/bin/python example/representation/demo_testcase.py --url http://127.0.0.1:8000
+```

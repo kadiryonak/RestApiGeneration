@@ -134,3 +134,23 @@ are committed.
   (`./benchmark`, ...); the newly linted code needed one line-length fix.
 - The pilot run of 2026-10-21 (booking + restler-demo, 3 tools × 3 seeds) was interrupted
   by the end of the session; to be rerun.
+
+## 2026-10-27 — Test-case representation; Shop API branches
+- **Owner decisions:** neutral names for the value classes (no genes/chromosomes); build
+  on the existing operation templates and input specs; layout split into a
+  language-independent `core/` (representation now; search, execution, code generation
+  later) and a per-language driver (start/reset/instrument the service), after
+  EvoMaster's core/driver split. Existing `representation/` moved to `core/`.
+- New: `values.py` (Boolean, Integer, Number, String, Enum, Null, Optional, Object, Array,
+  Choice values; `ResponseRef` = a value taken from an earlier action's response by a
+  `$.a[0].b` path; `placeholder()` = a deterministic, structurally complete value),
+  `action.py` (`HttpAction` → rendered `HttpRequest`), `testcase.py` (`TestCase`, checks
+  that references point backwards).
+- **Finding (parser):** FastAPI writes `X | None` as `anyOf: [X, {type: null}]`; it was
+  read as a two-option choice. Now a nullable X (affects FastAPI services: Shop API,
+  booking; WFD's Swagger 2.0 documents have no `anyOf`).
+- Shop API: `role` (`USER` default / `ADMIN`); `ADMIN` needs a `@shop.com` e-mail (403);
+  an order above 1000 needs an `ADMIN` user (403), so it needs a create-user-then-order
+  sequence. Checked by hand with curl (403/201/201/403/201/409/500 as expected).
+- `example/representation/demo_testcase.py` against the live Shop API: POST /users 201 →
+  GET /users/1 200 → POST /orders 201 (total 1900, ADMIN path). Not paper data.

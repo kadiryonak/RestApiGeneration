@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 
-from models.user import User, UserCreate
+from models.user import Role, User, UserCreate
 from services.store import ORDERS, USERS, next_id
 
 
@@ -9,10 +9,12 @@ def create_user(data: UserCreate) -> User:
         raise HTTPException(status_code=400, detail="users must be at least 18")
     if data.country == "TR" and data.age < 21:
         raise HTTPException(status_code=403, detail="users in TR must be at least 21")
+    if data.role == Role.ADMIN and not data.email.endswith("@shop.com"):
+        raise HTTPException(status_code=403, detail="admins need a @shop.com e-mail")
     if any(user["email"] == data.email for user in USERS.values()):
         raise HTTPException(status_code=409, detail="email already registered")
     user_id = next_id("user")
-    USERS[user_id] = {"id": user_id, **data.model_dump()}
+    USERS[user_id] = {"id": user_id, **data.model_dump(mode="json")}
     return User(**USERS[user_id])
 
 

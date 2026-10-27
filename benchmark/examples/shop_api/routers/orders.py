@@ -8,6 +8,7 @@ router = APIRouter(prefix="/orders", tags=["orders"])
 
 @router.post("", status_code=201, response_model=Order,
              responses={400: {"description": "Unknown product"},
+                        403: {"description": "Total above 1000 by a non-admin"},
                         404: {"description": "No such user"},
                         409: {"description": "Quantity limit"}})
 def create_order(data: OrderCreate) -> Order:

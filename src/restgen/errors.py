@@ -23,3 +23,7 @@ class MeasurementError(RestgenError):
 
 class ToolError(RestgenError):
     """A comparison tool could not be set up or run."""
+
+
+class UnresolvedReferenceError(RestgenError):
+    """A value refers to a response, or a field in it, that does not exist."""

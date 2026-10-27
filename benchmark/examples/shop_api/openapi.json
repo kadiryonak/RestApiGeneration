@@ -38,7 +38,7 @@
             "description": "Too young"
           },
           "403": {
-            "description": "Country rule"
+            "description": "Country or admin rule"
           },
           "409": {
             "description": "Email already registered"
@@ -232,6 +232,9 @@
           },
           "400": {
             "description": "Unknown product"
+          },
+          "403": {
+            "description": "Total above 1000 by a non-admin"
           },
           "404": {
             "description": "No such user"
@@ -471,6 +474,14 @@
         ],
         "title": "OrderCreate"
       },
+      "Role": {
+        "type": "string",
+        "enum": [
+          "USER",
+          "ADMIN"
+        ],
+        "title": "Role"
+      },
       "User": {
         "properties": {
           "name": {
@@ -495,6 +506,10 @@
             "pattern": "^[A-Z]{2}$",
             "title": "Country",
             "description": "ISO country code, e.g. TR, US"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role",
+            "default": "USER"
           },
           "id": {
             "type": "integer",
@@ -535,6 +550,10 @@
             "pattern": "^[A-Z]{2}$",
             "title": "Country",
             "description": "ISO country code, e.g. TR, US"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role",
+            "default": "USER"
           }
         },
         "type": "object",

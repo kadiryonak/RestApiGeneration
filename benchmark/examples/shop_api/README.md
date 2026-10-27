@@ -35,6 +35,8 @@ Or from another terminal:
 curl http://127.0.0.1:8000/health
 curl -X POST http://127.0.0.1:8000/users -H 'Content-Type: application/json' \
      -d '{"name":"John","email":"john@test.com","age":30,"country":"US"}'
+curl -X POST http://127.0.0.1:8000/users -H 'Content-Type: application/json' \
+     -d '{"name":"Ada","email":"ada@shop.com","age":30,"country":"US","role":"ADMIN"}'
 curl http://127.0.0.1:8000/users/1
 ```
 
@@ -45,15 +47,17 @@ Regenerate `openapi.json` after changing the code: `.venv/bin/python export_open
 | Endpoint | Responses |
 |---|---|
 | `GET /health` | 200 |
-| `POST /users` | 201 created · 400 age < 18 · 403 country `TR` and age < 21 · 409 e-mail already registered · 422 invalid body |
+| `POST /users` | 201 created · 400 age < 18 · 403 country `TR` and age < 21 · 403 role `ADMIN` without a `@shop.com` e-mail · 409 e-mail already registered · 422 invalid body |
 | `GET /users?country=&min_age=` | 200 list (filtered) |
 | `GET /users/{user_id}` | 200 · 404 |
 | `DELETE /users/{user_id}` | 204 · 404 · 409 user has open orders |
-| `POST /orders` | 201 · 400 unknown product · 404 no such user · 409 more than 10 laptops · 422 invalid body |
+| `POST /orders` | 201 · 400 unknown product · 403 total above 1000 and the user is not `ADMIN` · 404 no such user · 409 more than 10 laptops · 422 invalid body |
 | `GET /orders/{order_id}` | 200 · 404 |
 | `POST /orders/{order_id}/cancel` | 200 · 404 · 409 already cancelled |
 
 Products: `book` 12.5, `phone` 499.0, `laptop` 950.0. Coupons: `WELCOME10` (10 %), `VIP20` (20 %).
+User roles: `USER` (default) and `ADMIN`. An order above 1000 therefore needs a sequence:
+create an `ADMIN` user with a `@shop.com` e-mail first, then order with its id.
 
 ## Known faults (ground truth)
 
@@ -66,4 +70,5 @@ Planted on purpose, so that a test generator's fault detection can be checked:
    name is looked up. A single request cannot trigger it.
 
 The 409 laptop check in `create_order` runs after the price and coupon are computed, so a
-request with more than 10 laptops and an unknown coupon hits fault 1 first.
+request with more than 10 laptops and an unknown coupon hits fault 1 first; the 1000 limit
+is checked last, so more than 10 laptops gives 409 whatever the role.

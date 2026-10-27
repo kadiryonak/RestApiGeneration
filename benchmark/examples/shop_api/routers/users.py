@@ -7,7 +7,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 
 @router.post("", status_code=201, response_model=User,
-             responses={400: {"description": "Too young"}, 403: {"description": "Country rule"},
+             responses={400: {"description": "Too young"}, 403: {"description": "Country or admin rule"},
                         409: {"description": "Email already registered"}})
 def create_user(data: UserCreate) -> User:
     return users.create_user(data)

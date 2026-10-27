@@ -12,13 +12,13 @@ from restgen.benchmark.fetcher import SuiteFetcher
 from restgen.benchmark.registry import BenchmarkRegistry
 from restgen.benchmark.service import ServiceEnvironment
 from restgen.config import DEFAULT_CONFIG, Settings, load_settings
+from restgen.core.representation.resources import summarize
+from restgen.core.representation.templates import build_templates
 from restgen.errors import RestgenError
 from restgen.evaluation.measure import measure
 from restgen.evaluation.report import build_report, collect
 from restgen.jsonio import write_json
 from restgen.openapi import OpenApiSpec
-from restgen.representation.resources import summarize
-from restgen.representation.templates import build_templates
 from restgen.runner import TOOLS, Runner, RunRequest, load_run
 
 

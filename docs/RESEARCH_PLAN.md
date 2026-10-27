@@ -4,6 +4,9 @@
 
 Benchmark and evaluation infrastructure was built ahead of phase 2 at the owner's
 request (2026-10-17 / 2026-10-19), assuming D1 = A (see below).
+The test-case representation (`src/restgen/core/representation/`: values, HTTP actions,
+test cases with references to earlier responses) was built ahead of phase 2 at the
+owner's request (2026-10-27). It is method-neutral; no search code exists yet.
 
 ## Phases
 

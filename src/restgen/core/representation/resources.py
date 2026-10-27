@@ -17,7 +17,7 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from typing import Any
 
-from restgen.representation.templates import Location, OperationTemplate
+from restgen.core.representation.templates import Location, OperationTemplate
 
 _PARAM = re.compile(r"^\{([^{}]+)\}$")
 

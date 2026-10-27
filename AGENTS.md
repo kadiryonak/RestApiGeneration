@@ -77,6 +77,7 @@ src/restgen/
   traffic/              recording reverse proxy + interaction model
   benchmark/            manifest registry, pinned suite fetcher, service runtime
   coverage/             coverage.py JSON and JaCoCo XML readers (covered sets kept)
+  core/representation/  input specs, operation templates, values, HttpAction, TestCase
   evaluation/           metrics, measure (metrics.json), statistics, comparison report
   baselines/            comparison tools: Schemathesis CLI, Hypothesis pytest suite,
                         EvoMaster black-box (Python unittest output)
