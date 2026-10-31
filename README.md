@@ -6,11 +6,11 @@ Graduation thesis project. The Artificial Bee Colony (ABC) algorithm drives a
 population-based search; a large language model acts as a knowledge-rich
 operator inside it (constructing, mutating or repairing candidate solutions).
 
-> Status: **literature review**. No method code yet. Private repository.
+> Status: **method design + tested DABC-HS prototype**. The experiment protocol is not
+> frozen, so prototype checks are not thesis results. Private repository.
 
-Whether the method generates *test suites for existing REST APIs* or *REST API
-implementations* is decided at the end of the review — see
-[docs/RESEARCH_PLAN.md](docs/RESEARCH_PLAN.md).
+The method generates persistent Python test suites for existing REST APIs. See
+[docs/METHOD.md](docs/METHOD.md) and [docs/RESEARCH_PLAN.md](docs/RESEARCH_PLAN.md).
 
 ## Where things are
 
@@ -20,14 +20,17 @@ implementations* is decided at the end of the review — see
 | Literature review protocol | [docs/literature/README.md](docs/literature/README.md) |
 | Bibliography / extraction matrix | [docs/literature/references.bib](docs/literature/references.bib), [docs/literature/extraction-matrix.csv](docs/literature/extraction-matrix.csv) |
 | Experiment protocol (frozen before the first run) | [docs/EXPERIMENT_PROTOCOL.md](docs/EXPERIMENT_PROTOCOL.md) |
+| Architecture and code-reading guide | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| DABC-HS implementation mapping | [docs/METHOD.md](docs/METHOD.md) |
 | Engineering rules, layout, commands | [AGENTS.md](AGENTS.md) |
 
 ## Measurement infrastructure
 
 A recording proxy, services under coverage and a metric layer measure every tool the same
 way (see AGENTS.md). Comparison tools: **Schemathesis** (property-based, application),
-a **Hypothesis** suite generated from the OpenAPI document (library) and **EvoMaster**
-(search-based, black-box, Python output). Benchmark suites are pinned in
+a **Hypothesis** suite generated from the OpenAPI document (library), **EvoMaster**
+(search-based, black-box, Python output), and **DABC-HS** (the proposed method).
+Benchmark suites are pinned in
 `configs/benchmark.toml`.
 
 ## Development

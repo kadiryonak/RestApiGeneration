@@ -154,3 +154,40 @@ are committed.
   sequence. Checked by hand with curl (403/201/201/403/201/409/500 as expected).
 - `example/representation/demo_testcase.py` against the live Shop API: POST /users 201 →
   GET /users/1 200 → POST /orders 201 (total 1900, ADMIN path). Not paper data.
+
+## 2026-10-29 — DABC-HS and resource-aware method prototype
+- **Owner decision:** D1 = A, a persistent Python test suite for an existing REST API.
+  The owner explicitly opened method implementation before literature extraction and the
+  experiment protocol are complete. No result in this entry is paper evidence.
+- Read the owner-supplied DABC-HS publisher PDF (Sahin and Akay, Applied Soft Computing
+  104, 107246) and EvoMaster 2019 PDF (TOSEM 28(1), article 3). The 2021 resource and
+  dependency design was also mapped from the owner's supplied analysis; its existing
+  bibliography entry is `zhang2021resource`.
+- Implemented target populations, `h = 1/(1+d)`, feedback-directed counters, employed and
+  onlooker phases, parent+offspring preference sorting, Pareto/crowding reduction, scout,
+  dynamic SizeFactor and Hyper-Scout refresh. All controls are in `configs/restgen.toml`.
+- Added resource lifecycle construction with response-ID chaining, value and structural
+  resource mutations, and dependency evidence from OpenAPI names/paths, Python state
+  access and fitness improvements.
+- Added Python live line/exception tracing and AST comparison probes with numeric branch
+  distance and string edit distance. coverage.py remains the authoritative reported
+  measurement. The separate-process live feedback transport is not yet connected, so the
+  runner adapter is currently black-box/status-guided.
+- Verification (not an experiment): 30 focused unit tests passed; strict mypy and focused
+  ruff passed. `tests/integration/test_dabc_hs_end_to_end.py` passed: a real local HTTP
+  service received POST-create then GET-by-returned-id, and the emitted persistent pytest
+  suite passed against the service on a clean re-execution.
+- Runner smoke (not paper data): `results/runs/dabc-hs-smoke/booking/dabc-hs/s42`, seed
+  42, 20-evaluation/15-second limits. DABC-HS made 22 exploration calls, attempted 3/3
+  operations, successfully covered 1/3, reached 35/43 lines and 3/6 branches, and found
+  one unique 500 signature (unreviewed). It emitted three tests; all were syntactically
+  valid/collectable/stable, two passed and the fault-reproducing test failed at its no-5xx
+  assertion in every one of three clean reruns. Line and branch retention were both 1.0.
+- **Finding and fix (generated oracle):** the first smoke parsed a plain-text 500 body as
+  JSON before reaching the assertion (`oracle_reached_rate = 2/3`). Generated tests now
+  retain non-JSON response text and assert afterwards; the repeated smoke has
+  `oracle_reached_rate = 1.0` and reproduces the 500 as an assertion failure.
+- Third-party installations were consolidated under root `baselines/` (pinned
+  Schemathesis/Hypothesis clones, private environments, EvoMaster JAR/environment).
+  `make tools` rebuilt relocated shebangs; Schemathesis 4.30.0 and both pytest 9.1.1
+  environments execute from their new paths.

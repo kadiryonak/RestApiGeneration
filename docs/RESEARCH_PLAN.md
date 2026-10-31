@@ -1,6 +1,8 @@
 # Research plan
 
-**Current phase: 1 — literature review** (started 2026-10-09)
+**Current work: phase 2 method design plus an early phase-4 prototype** (owner request,
+2026-10-29). Literature extraction and the phase-3 protocol are not complete; therefore
+no prototype smoke result is an experiment result.
 
 Benchmark and evaluation infrastructure was built ahead of phase 2 at the owner's
 request (2026-10-17 / 2026-10-19), assuming D1 = A (see below).
@@ -21,7 +23,7 @@ owner's request (2026-10-27). It is method-neutral; no search code exists yet.
 
 ## Open decisions
 
-### D1 — what is generated? (decide at the end of phase 1)
+### D1 — what is generated? (decided 2026-10-29)
 
 | | A: REST API **test** generation | B: REST API **implementation** generation |
 |---|---|---|
@@ -34,9 +36,10 @@ owner's request (2026-10-27). It is method-neutral; no search code exists yet.
 
 Record the decision here with the date and the reasons (what the review showed).
 
-**Provisional (2026-10-19): A — the owner's benchmark/metric analysis targets a
-persistent Python test suite for existing REST APIs, and the infrastructure is built for
-that. To be confirmed by the owner at the end of phase 1.**
+**Owner decision (2026-10-29): A — a persistent Python test suite for an existing REST
+API.** The implementation combines DABC-HS target archives and Hyper-Scout with
+resource/dependency-aware construction and mutation; an LLM is reserved for semantic
+values and dependencies.
 
 ### D2 — LLM provider(s)
 API (DeepSeek/OpenAI/Claude) vs. local (Ollama). Driven by budget and by the

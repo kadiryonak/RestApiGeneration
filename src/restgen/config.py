@@ -70,6 +70,24 @@ class EvoMasterSettings:
 
 
 @dataclass(frozen=True)
+class DabcHsSettings:
+    """Search controls from Sahin and Akay's DABC-HS algorithm."""
+
+    population_size: int
+    limit: int
+    archive_size: int
+    mutation_rate: float
+    smart_sampling_rate: float
+    mutation_threshold: int
+    min_mutations: int
+    max_mutations: int
+    size_factors: tuple[float, ...]
+    change_number: int
+    reset_number: int
+    max_test_actions: int
+
+
+@dataclass(frozen=True)
 class ToolchainSettings:
     """Pinned build/run tools for JVM services (installed by `make toolchain`)."""
 
@@ -90,6 +108,7 @@ class Settings:
     schemathesis: SchemathesisSettings
     hypothesis: HypothesisSettings
     evomaster: EvoMasterSettings
+    dabc_hs: DabcHsSettings
     toolchain: ToolchainSettings
 
     def to_dict(self) -> dict[str, Any]:
@@ -186,6 +205,7 @@ def _build(root: Path, raw: Mapping[str, Any]) -> Settings:
     schemathesis = _section(raw, "tools", "schemathesis")
     hypothesis = _section(raw, "tools", "hypothesis")
     evomaster = _section(raw, "tools", "evomaster")
+    dabc_hs = _section(raw, "method", "dabc_hs")
     toolchain = _section(raw, "toolchain")
     jdks = _section(raw, "toolchain", "jdks")
     if not all(isinstance(v, str) for v in jdks.values()):
@@ -231,6 +251,22 @@ def _build(root: Path, raw: Mapping[str, Any]) -> Settings:
             python=root / _get(evomaster, "python", str, "tools.evomaster"),
             extra_args=_str_tuple(evomaster, "extra_args", "tools.evomaster"),
         ),
+        dabc_hs=DabcHsSettings(
+            population_size=_get(dabc_hs, "population_size", int, "method.dabc_hs"),
+            limit=_get(dabc_hs, "limit", int, "method.dabc_hs"),
+            archive_size=_get(dabc_hs, "archive_size", int, "method.dabc_hs"),
+            mutation_rate=_get(dabc_hs, "mutation_rate", float, "method.dabc_hs"),
+            smart_sampling_rate=_get(dabc_hs, "smart_sampling_rate", float, "method.dabc_hs"),
+            mutation_threshold=_get(dabc_hs, "mutation_threshold", int, "method.dabc_hs"),
+            min_mutations=_get(dabc_hs, "min_mutations", int, "method.dabc_hs"),
+            max_mutations=_get(dabc_hs, "max_mutations", int, "method.dabc_hs"),
+            size_factors=tuple(
+                float(value) for value in _get(dabc_hs, "size_factors", list, "method.dabc_hs")
+            ),
+            change_number=_get(dabc_hs, "change_number", int, "method.dabc_hs"),
+            reset_number=_get(dabc_hs, "reset_number", int, "method.dabc_hs"),
+            max_test_actions=_get(dabc_hs, "max_test_actions", int, "method.dabc_hs"),
+        ),
         toolchain=ToolchainSettings(
             jdks={str(k): root / str(v) for k, v in jdks.items()},
             maven=root / _get(toolchain, "maven", str, "toolchain"),
@@ -256,3 +292,27 @@ def _validate(settings: Settings) -> None:
         raise ConfigError("evaluation.rerun_count must be at least 1")
     if settings.proxy.max_body_bytes < 0:
         raise ConfigError("proxy.max_body_bytes must not be negative")
+    method = settings.dabc_hs
+    if (
+        min(
+            method.population_size,
+            method.limit,
+            method.archive_size,
+            method.mutation_threshold,
+            method.min_mutations,
+            method.max_mutations,
+            method.change_number,
+            method.reset_number,
+            method.max_test_actions,
+        )
+        <= 0
+    ):
+        raise ConfigError("method.dabc_hs integer controls must be positive")
+    if method.min_mutations > method.max_mutations:
+        raise ConfigError("method.dabc_hs.min_mutations must not exceed max_mutations")
+    if not 0.0 <= method.mutation_rate <= 1.0:
+        raise ConfigError("method.dabc_hs.mutation_rate must lie within 0..1")
+    if not 0.0 <= method.smart_sampling_rate <= 1.0:
+        raise ConfigError("method.dabc_hs.smart_sampling_rate must lie within 0..1")
+    if not method.size_factors or any(not 0.0 < value <= 1.0 for value in method.size_factors):
+        raise ConfigError("method.dabc_hs.size_factors must be non-empty values in (0, 1]")

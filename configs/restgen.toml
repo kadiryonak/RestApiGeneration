@@ -28,19 +28,35 @@ max_body_bytes = 65536
 redact_headers = ["authorization", "cookie", "set-cookie", "x-api-key"]
 
 [tools.schemathesis]
-executable = "schemathesis/.venv/bin/schemathesis"
+executable = "baselines/schemathesis/.venv/bin/schemathesis"
 extra_args = ["--continue-on-failure", "--no-shrink", "--suppress-health-check", "all"]
 
 [tools.hypothesis]
-python = ".venvs/hypothesis/bin/python"
+python = "baselines/.venvs/hypothesis/bin/python"
 
 [tools.evomaster]
 # Release v6.2.0 (tag commit efad6f2bd7ff0025852a6203d307303c568e763a), fetched by `make tools`.
-jar = ".tools/evomaster/6.2.0/evomaster.jar"
+jar = "baselines/evomaster/releases/6.2.0/evomaster.jar"
 java = "java"
-python = ".venvs/evomaster/bin/python"
+python = "baselines/evomaster/.venv/bin/python"
 # Black-box mode, Python output. MIO/SMARTS default search; one test file.
 extra_args = ["--testSuiteSplitType", "NONE"]
+
+[method.dabc_hs]
+# Sahin & Akay (2021) tuning winner: PS=50, limit=10, change=5, reset=5 and
+# a cycling SizeFactor set. These remain explicit so ablations never change code.
+population_size = 50
+limit = 10
+archive_size = 10
+mutation_rate = 0.3333333333333333
+smart_sampling_rate = 0.6
+mutation_threshold = 500
+min_mutations = 1
+max_mutations = 10
+size_factors = [0.25, 0.75, 0.5]
+change_number = 5
+reset_number = 5
+max_test_actions = 10
 
 [toolchain]
 # JVM services (WFD/EMB) are built and run with pinned tools inside .tools/ (`make toolchain`).

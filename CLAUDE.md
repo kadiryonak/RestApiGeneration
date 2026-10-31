@@ -8,10 +8,9 @@
   repository docs in English.
 - Commit messages: imperative, concise, no `Co-Authored-By` or any AI/tool
   attribution. The owner is the only author.
-- **Phase gate:** while `docs/RESEARCH_PLAN.md` says the phase is
-  "literature review", do not write ABC/LLM method code. The review itself,
-  documents, repository hygiene and the benchmark/evaluation infrastructure
-  (owner's request, 2026-10-17) are in scope.
+- **Phase gate:** DABC-HS implementation was explicitly opened by the owner on
+  2026-10-29. LLM method code and protocol experiments remain gated until their design
+  and protocol phases are recorded in `docs/RESEARCH_PLAN.md`.
 - Paper reading order and PDFs: `00 - Okuma Sırası.md` in the vault folder below;
   files are named `NN - Title.pdf` inside numbered category folders.
 - Research memory lives in the Obsidian vault at

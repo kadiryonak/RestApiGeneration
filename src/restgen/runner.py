@@ -22,6 +22,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from restgen.abc.tool import DabcHsTool
 from restgen.baselines.base import ComparisonTool, ToolRunContext
 from restgen.baselines.evomaster_cli import EvoMasterCli
 from restgen.baselines.hypothesis_pytest import HypothesisPytest
@@ -37,7 +38,7 @@ from restgen.openapi import OpenApiSpec
 from restgen.traffic.models import TRAFFIC_FILE
 from restgen.traffic.proxy import RecordingProxy
 
-TOOLS = ("schemathesis", "hypothesis", "evomaster")
+TOOLS = ("schemathesis", "hypothesis", "evomaster", "dabc-hs")
 RUN_RECORD = "run.json"
 
 
@@ -67,6 +68,8 @@ def make_tool(name: str, settings: Settings, spec: OpenApiSpec) -> ComparisonToo
         return HypothesisPytest(settings.hypothesis, spec)
     if name == "evomaster":
         return EvoMasterCli(settings.evomaster)
+    if name == "dabc-hs":
+        return DabcHsTool(settings.dabc_hs, spec)
     raise ToolError(f"unknown tool {name!r}; known: {', '.join(TOOLS)}")
 
 

@@ -36,8 +36,10 @@ checked before they are cited.
 | 18a | Application of Artificial Bee Colony Algorithm to Software Testing | Dahiya, Chhabra, Kumar | ASWEC | 2010 | 10.1109/ASWEC.2010.30 | UNVERIFIED |
 | 18b | Automated software test optimisation framework – an artificial bee colony optimisation-based approach | Jeya Mala, Mohan, Kamalapriya | IET Software | 2010 | 10.1049/iet-sen.2009.0079 | UNVERIFIED |
 | 18c | Comparisons of metaheuristic algorithms and fitness functions on software test data generation | Sahin, Akay | Applied Soft Computing | 2016 | 10.1016/j.asoc.2016.09.045 | UNVERIFIED |
+| 18d | A Discrete Dynamic Artificial Bee Colony with Hyper-Scout for RESTful web service API test suite generation | Sahin, Akay | Applied Soft Computing Journal 104, 107246 | 2021 | 10.1016/j.asoc.2021.107246 | owner-supplied publisher PDF |
 
-No ABC + REST API paper was found.
+Correction (2026-10-29): the owner supplied the DABC-HS paper above; the earlier search
+had failed to identify an ABC + REST API paper.
 
 ## Benchmark repositories (HEAD via `git ls-remote`, 2026-10-19)
 

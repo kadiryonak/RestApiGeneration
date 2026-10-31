@@ -15,6 +15,8 @@ def test_repository_config_loads() -> None:
     assert len(settings.repetitions.seeds) >= 5
     assert settings.evaluation.success_status_min == 200
     assert "authorization" in settings.proxy.redact_headers
+    assert settings.dabc_hs.population_size == 50
+    assert settings.dabc_hs.size_factors == (0.25, 0.75, 0.5)
 
 
 def test_override_replaces_value_with_toml_literal() -> None:
@@ -48,6 +50,8 @@ def test_bad_override_is_rejected(override: str) -> None:
         "evaluation.success_status_min=700",
         "evaluation.rerun_count=0",
         "repetitions.seeds=[]",
+        "method.dabc_hs.size_factors=[]",
+        "method.dabc_hs.mutation_rate=1.1",
     ],
 )
 def test_invalid_values_are_rejected(override: str) -> None:

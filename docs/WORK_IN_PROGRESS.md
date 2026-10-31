@@ -1,4 +1,4 @@
-# Work in progress (updated 2026-10-21)
+# Work in progress (updated 2026-10-29)
 
 ## Done
 - Config, OpenAPI model, recording proxy, coverage readers (coverage.py, JaCoCo)
@@ -14,6 +14,11 @@
 - Representation layer (`src/restgen/core/representation/`): method-neutral input positions
   (no genes/food sources), operation templates, URI-based resource dependencies;
   `restgen spec inspect`
+- DABC-HS prototype (`src/restgen/abc/`): target archive, feedback-directed onlookers,
+  preference sorting, dynamic SizeFactor, scout/Hyper-Scout, resource lifecycle sampling
+  and mutation, real-HTTP fitness, persistent pytest generation and runner integration
+- Python live feedback (`src/restgen/instrumentation/`): trace targets, AST branch-distance
+  probes and Python domain-store access hooks; external-process transport still to wire
 - JVM service support (optional route): `launch.kind = "jvm"`, JaCoCo, `make toolchain`;
   five WFD services in the manifest (4 verified running, proxyprint fails at startup)
 
@@ -25,4 +30,5 @@
 3. RESTestBench: requirement-based mutation runner feeding `evaluation/mutation.py`
 4. Settle the open protocol questions (budget parity, repetitions, roles) and freeze
    `docs/EXPERIMENT_PROTOCOL.md`
-5. Owner confirms D1 = A
+5. Wire live Python instrumentation from the service process to DABC-HS; add the LLM
+   semantic operator only after its interface/budget design is frozen

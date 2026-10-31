@@ -11,12 +11,11 @@ based search (employed / onlooker / scout bees, `limit`, fitness-proportional
 selection); the LLM provides domain knowledge as a variation or construction
 operator inside that search.
 
-**Current phase: literature review**, with the benchmark and evaluation
-infrastructure already built at the owner's request (2026-10-17). It assumes
-direction A of decision D1 (generating a persistent Python *test suite* for an
-existing REST API); see [`docs/RESEARCH_PLAN.md`](docs/RESEARCH_PLAN.md). The
-ABC + LLM *method* itself (`src/restgen/abc/`, `src/restgen/llm/`) is not written
-until the phase changes.
+**Current work: method design plus an early implementation prototype**, started at the
+owner's request on 2026-10-29 while literature extraction and protocol design continue.
+Decision D1 is A: generate a persistent Python *test suite* for an existing REST API;
+see [`docs/RESEARCH_PLAN.md`](docs/RESEARCH_PLAN.md). DABC-HS is implemented under
+`src/restgen/abc/`; the LLM semantic operator is not implemented yet.
 
 ## Measurement architecture
 
@@ -78,6 +77,8 @@ src/restgen/
   benchmark/            manifest registry, pinned suite fetcher, service runtime
   coverage/             coverage.py JSON and JaCoCo XML readers (covered sets kept)
   core/representation/  input specs, operation templates, values, HttpAction, TestCase
+  abc/                  DABC-HS search, target archive, resource operators, pytest output
+  instrumentation/      Python live line/branch/exception/state feedback
   evaluation/           metrics, measure (metrics.json), statistics, comparison report
   baselines/            comparison tools: Schemathesis CLI, Hypothesis pytest suite,
                         EvoMaster black-box (Python unittest output)
@@ -87,17 +88,15 @@ tests/support           shared fakes and fixtures (e.g. a scripted fake LLM clie
 benchmark/              benchmark manifest docs; checked-out services are git-ignored
 results/                experiment output (raw runs git-ignored, summary/ committed)
 scripts/                one-off orchestration (experiment chains), not library code
-schemathesis/           upstream Schemathesis clone for study (git-ignored, own .venv;
-                        never install restgen deps there or Schemathesis into restgen's .venv)
-hypothesis/             upstream Hypothesis clone for study (git-ignored, partial clone)
-.venvs/hypothesis/      Hypothesis baseline environment (`make tools`, git-ignored)
-.venvs/evomaster/       runs EvoMaster's generated Python tests (`make tools`, git-ignored)
-.tools/evomaster/       EvoMaster release jar, checksum-verified (`make tools`, git-ignored)
+baselines/              third-party comparison-tool installations (see its README)
+  schemathesis/         pinned upstream clone with its own .venv
+  hypothesis/           pinned partial upstream clone; environment under .venvs/
+  evomaster/            checksum-verified releases and generated-suite environment
 ```
 
-Still to come with the method: an `abc/` search core (food source, colony, bee
-phases, selection, termination) and an `llm/` layer (clients, prompts, caching,
-cost accounting). The method plugs in as one more `ComparisonTool`.
+Still to come: an `llm/` layer (clients, prompts, caching and semantic operators) and
+the external-process transport for live Python white-box feedback. DABC-HS already plugs
+in as a `ComparisonTool`; white-box runs must not be claimed until that transport exists.
 
 ## Commands
 
@@ -111,7 +110,7 @@ make tools            # Schemathesis, Hypothesis (pinned clones) and EvoMaster (
 
 restgen benchmark list|fetch|verify      # suites at pinned commits
 restgen benchmark setup -s booking       # service venv
-restgen run --run-id NAME -s booking -t schemathesis -t hypothesis -t evomaster [--seed N] [--force]
+restgen run --run-id NAME -s booking -t schemathesis -t hypothesis -t evomaster -t dabc-hs [--seed N] [--force]
 restgen measure results/runs/NAME/...    # recompute metrics.json (e.g. after triage)
 restgen report --name NAME --group a='NAME/*/schemathesis/*' --group b='NAME/*/hypothesis/*'
 restgen --set budget.max_time_seconds=600 run ...   # config overrides

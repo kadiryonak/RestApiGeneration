@@ -47,7 +47,9 @@ docs/literature/**/*.pdf
 # Schemathesis crash cache (must never be shared between runs)
 .schemathesis/
 
-# Third-party tools cloned for study (own git history, not part of restgen)
-/schemathesis/
-/hypothesis/
+# Third-party baseline tools (own git history, releases and virtual environments)
+/baselines/schemathesis/
+/baselines/hypothesis/
+/baselines/.venvs/
+/baselines/evomaster/
 .tools/
